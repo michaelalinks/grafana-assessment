@@ -20,4 +20,4 @@ spec:
     kind: GitRepository
     url: https://github.com/michaelalinks/iso-grafana-install.git
     ref: refs/heads/feat/flux-bootstrap
-    path: clusters/gke
+    path: flux
