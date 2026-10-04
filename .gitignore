@@ -1,0 +1,12 @@
+# Local infrastructure, configuration, provider cache and state.
+/terraform-local/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+*.tfvars.json
+crash.log
+# Credentials must never be included in the submission.
+.env
+.env.*

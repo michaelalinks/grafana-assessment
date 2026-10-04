@@ -1,0 +1,39 @@
+Flux bootstrap on GKE
+=====================
+Cluster: grafana-assessment, ornate-artifact-414911, europe-west2-a.
+Operator chart: 0.61.0. Flux controllers: 2.9.6.
+Git source: public https://github.com/michaelalinks/iso-grafana-install.git
+Branch: main. Path: flux.
+No Git authentication secret is required for this public repository.
+
+Bootstrap commands (after Terraform creates the cluster)
+-------------------------------------------------------
+gcloud components install gke-gcloud-auth-plugin
+gcloud container clusters get-credentials grafana-assessment --project=ornate-artifact-414911 --zone=europe-west2-a --dns-endpoint
+helm upgrade --install flux-operator oci://ghcr.io/controlplaneio-fluxcd/charts/flux-operator --version 0.61.0 --namespace flux-system --create-namespace --wait --timeout 3m
+kubectl apply -f flux/flux-system/flux-instance.yaml
+
+If the auth plugin is not on PATH, add the Google Cloud SDK bin directory
+printed by gcloud info to PATH, or set its absolute exec-command in the
+GKE kubeconfig user entry. No credentials belong in the Git repository.
+
+The initial FluxInstance is applied once; subsequent reconciliation manages
+it from Git. Flux builds flux/kustomization.yaml. Four controllers are
+installed; image automation controllers are omitted because the assignment
+does not require them. The temporary iso-flux-test namespace was used to
+verify Git-to-Kustomize reconciliation and then removed.
+
+Verification
+------------
+kubectl -n flux-system get fluxinstances,gitrepositories,kustomizations
+kubectl -n flux-system get deployments
+
+Ready=True on the FluxInstance, GitRepository and Flux Kustomization
+confirms successful reconciliation.
+FluxInstance owns the initial sync resources. Do not create duplicate
+GitRepository/Kustomization objects for the same root path.
+
+The cluster watches main. Merge the bootstrap PR before expecting the
+flux/ path to reconcile successfully from main. Delete the implementation
+branch only after verifying main reconciliation.
+Terraform and local state are excluded by .gitignore.
