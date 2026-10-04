@@ -87,3 +87,67 @@ spec:
     name: flux-system
   dependsOn:
     - name: external-secrets
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cert-manager
+  namespace: flux-system
+spec:
+  interval: 5m
+  retryInterval: 30s
+  timeout: 10m
+  prune: true
+  wait: true
+  path: ./flux/installs/cert-manager
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+    - name: secret-store
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cert-issuers
+  namespace: flux-system
+spec:
+  interval: 5m
+  retryInterval: 30s
+  timeout: 10m
+  prune: true
+  wait: true
+  path: ./flux/installs/cert-manager/config
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+    - name: cert-manager
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: acme-email
+        optional: false
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: grafana
+  namespace: flux-system
+spec:
+  interval: 5m
+  retryInterval: 30s
+  timeout: 10m
+  prune: true
+  wait: true
+  path: ./flux/installs/grafana
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+    - name: cert-issuers
+    - name: gateway-config
+  healthCheckExprs:
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: ListenerSet
+      current: has(status.conditions) && status.conditions.exists(c, c.type == 'Programmed' && c.status == 'True' && c.observedGeneration == metadata.generation)
