@@ -17,8 +17,9 @@ If the auth plugin is not on PATH, add the Google Cloud SDK bin directory
 printed by gcloud info to PATH, or set its absolute exec-command in the
 GKE kubeconfig user entry. No credentials belong in the Git repository.
 
-The initial FluxInstance is applied once; subsequent reconciliation manages
-it from Git. Flux builds flux/kustomization.yaml. Four controllers are
+The ignored Terraform now owns Flux Operator and FluxInstance bootstrap.
+Its Helm releases make the manual bootstrap commands above unnecessary on
+new clusters. Flux builds flux/kustomization.yaml. Four controllers are
 installed; image automation controllers are omitted because the assignment
 does not require them. The temporary iso-flux-test namespace was used to
 verify Git-to-Kustomize reconciliation and then removed.
