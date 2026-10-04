@@ -31,8 +31,6 @@ spec:
       - gateway-httproute
     domainFilters:
       - iso.michaelalinks.com
-    zoneIdFilters:
-      - grafana-assessment
     policy: sync
     registry: txt
     txtOwnerId: iso-grafana-assessment
@@ -40,6 +38,7 @@ spec:
     interval: 1m
     extraArgs:
       - --google-project=ornate-artifact-414911
+      - --zone-id-filter=grafana-assessment
       - --google-zone-visibility=public
       - --gateway-namespace=envoy-gateway-system
     serviceAccount:
