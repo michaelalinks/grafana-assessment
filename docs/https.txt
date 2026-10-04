@@ -60,3 +60,16 @@ curl -I http://grafana.iso.michaelalinks.com
 curl -I https://grafana.iso.michaelalinks.com
 Do not use kubectl get secrets -o yaml or output the substituted issuer
 manifest when recording submission evidence.
+
+Verified on 2026-10-04
+----------------------
+All Flux Kustomizations and cert-manager Helm release were Ready. ESO reported
+SecretSynced, the ACME issuer registered successfully, and the certificate
+was issued with automatic renewal scheduled. Public DNS resolved to Envoy.
+HTTP returned 301 to HTTPS; HTTPS passed normal certificate verification
+and returned the expected 404 before the Grafana backend exists.
+
+After merging this PR, run the ignored Terraform apply to restore bootstrap
+sync to main. The local bootstrap now resets chart values and fingerprints
+the GitOps YAML so changes trigger an update rather than leaving a temporary
+validation branch selected through an out-of-band Helm upgrade.
