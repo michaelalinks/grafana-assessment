@@ -21,8 +21,8 @@ namespaces and attach with:
           port: 3000
 Use the application's actual Service name and port. The Gateway accepts
 routes from all namespaces, matching the previous cluster's central model.
-Currently only HTTP is configured. cert-manager, HTTPS and Grafana are
-subsequent steps; do not expose credentials before adding HTTPS.
+HTTPS is configured by the cert-manager installation described in
+docs/https.txt. Application backend routes should use sectionName https.
 
 ExternalDNS
 -----------
