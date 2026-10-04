@@ -1,0 +1,84 @@
+Grafana and Prometheus
+======================
+Handwritten Kubernetes manifests; no Grafana or Prometheus Helm charts.
+Grafana image: grafana/grafana:13.2.3. Prometheus: prom/prometheus:v3.15.0.
+
+Installation
+------------
+1. Apply the ignored terraform-local infrastructure as documented there.
+2. In GCP Secret Manager, add an enabled version of the secret
+   assessment-grafana-admin-password in ornate-artifact-414911. Store only
+   the chosen password as its value. Never put it in Git or the ZIP.
+3. Merge the manifests into main. Flux installs Prometheus, then Grafana.
+   No Terraform apply is needed for application changes.
+4. Open https://grafana.iso.michaelalinks.com and log in as admin with that
+   password. The home dashboard is Grafana & Prometheus Overview, also
+   available under the Assessment folder. Allow a minute for initial samples.
+   Supply reviewer credentials privately; the admin account can modify the
+   instance. Creating a separate Viewer account is an optional manual step.
+
+Configuration
+-------------
+External Secrets uses the existing Workload Identity-enabled controller to
+fetch the password. Grafana itself needs no GCP or Kubernetes API access.
+The password initializes the admin account on a fresh database. Updating
+Secret Manager later does not reset an existing Grafana account password;
+change that password through Grafana and update Secret Manager to match
+before a rebuild. No secret payload is part of these manifests.
+
+Kustomize generates versioned ConfigMaps for grafana.ini, datasource and
+provider YAML, dashboard JSON and Prometheus configuration. Their changed
+names update pod templates and trigger a rollout. Grafana provisions a fixed
+Prometheus datasource UID and a dashboard referring to that UID. UI edits
+to those provisioned resources are disabled; make changes in Git.
+
+Prometheus scrapes itself and Grafana every 15 seconds. Dashboard panels
+show target health, active time series, uptime, CPU, memory, scrape duration
+and sample counts. This demonstrates integration, not comprehensive GKE
+monitoring: no node exporter or kube-state-metrics is installed.
+
+Grafana uses the existing local HTTPS ListenerSet attached to the central
+Envoy Gateway. ExternalDNS publishes the HTTPRoute hostname. Prometheus
+has only a ClusterIP Service and no public HTTPRoute.
+
+Storage and tradeoffs
+---------------------
+Grafana SQLite data uses a 2Gi standard-rwo PVC. Prometheus uses 10Gi and
+retains up to seven days or 8GB of metrics, whichever bound is reached first.
+One replica and Recreate deployment strategy avoid simultaneous writers
+and RWO disk attachment conflicts. Updates can cause brief downtime.
+Resources are sized for this small demonstration, not production HA.
+PVCs survive pod replacement, but Flux pruning or infrastructure teardown
+can delete PVCs/disks. There are no backups; rebuild restores provisioned
+configuration but not historical metrics, users or UI changes.
+
+Verification
+------------
+kubectl -n flux-system get gitrepositories,kustomizations
+kubectl -n monitoring get deployments,pods,pvc,services
+kubectl -n grafana get deployments,pods,pvc,externalsecrets,certificates,httproutes
+curl --fail https://grafana.iso.michaelalinks.com/api/health
+
+Expected: Flux Ready on main, workloads Available, PVCs Bound, ExternalSecret
+and Certificate Ready, HTTPRoute Accepted and ResolvedRefs True. The health
+endpoint should report database ok. In Grafana, check the provisioned
+Prometheus datasource and dashboard: both targets should show 1, and CPU,
+memory and scrape panels should contain samples. Check HTTP redirects to
+HTTPS and that the browser accepts the certificate. Do not export secrets
+when recording results. Runtime checks are pending the PR merge.
+
+Reflection
+----------
+The supporting controllers automate DNS, TLS and secret delivery, while the
+core monitoring manifests remain small and inspectable. Explicit app-owned
+listeners keep certificates and routes alongside Grafana. The main tradeoff
+is accepting downtime and limited monitoring scope to keep the assessment
+lightweight. Full teardown/rebuild and persistence tests remain to be run;
+do not describe them as successful until they have been performed.
+
+References
+----------
+https://grafana.com/docs/grafana/latest/administration/provisioning/
+https://grafana.com/docs/grafana/latest/setup-grafana/installation/kubernetes/
+https://prometheus.io/docs/prometheus/latest/installation/
+https://prometheus.io/docs/prometheus/latest/configuration/configuration/
