@@ -46,3 +46,9 @@ curl -I https://grafana.iso.michaelalinks.com
 Expect one Gateway, a Ready certificate, a Programmed ListenerSet, HTTP 301
 and trusted HTTPS. HTTPS returns 404 until Grafana's backend is installed.
 After merging, the ignored Terraform apply restores Flux sync to main.
+
+Verified on 2026-10-04: all Flux Kustomizations Ready, one Gateway and one
+LoadBalancer Service, local Certificate Ready and ListenerSet Programmed.
+A temporary application HTTPRoute attached to the local ListenerSet served
+a 302 over trusted HTTPS and was removed. The persistent HTTP route returned
+301 to HTTPS. The obsolete central certificate Secret was removed.
