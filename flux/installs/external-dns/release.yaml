@@ -41,10 +41,16 @@ spec:
       - --zone-id-filter=grafana-assessment
       - --google-zone-visibility=public
       - --gateway-namespace=envoy-gateway-system
+      - --gateway-listener-sets
     serviceAccount:
       name: external-dns
       annotations:
         iam.gke.io/gcp-service-account: grafana-assessment@ornate-artifact-414911.iam.gserviceaccount.com
+    rbac:
+      additionalPermissions:
+        - apiGroups: [gateway.networking.k8s.io]
+          resources: [listenersets]
+          verbs: [get, list, watch]
     resources:
       requests:
         cpu: 50m

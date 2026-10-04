@@ -65,7 +65,6 @@ spec:
     name: flux-system
   dependsOn:
     - name: envoy-gateway
-    - name: gateway-certificate
   healthCheckExprs:
     - apiVersion: gateway.networking.k8s.io/v1
       kind: Gateway
@@ -104,22 +103,6 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-system
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: acme-email
-  namespace: flux-system
-spec:
-  interval: 5m
-  retryInterval: 30s
-  timeout: 10m
-  prune: true
-  wait: true
-  path: ./flux/installs/cert-manager/secrets
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
   dependsOn:
     - name: secret-store
 ---
@@ -134,13 +117,12 @@ spec:
   timeout: 10m
   prune: true
   wait: true
-  path: ./flux/installs/cert-manager/issuers
+  path: ./flux/installs/cert-manager/config
   sourceRef:
     kind: GitRepository
     name: flux-system
   dependsOn:
     - name: cert-manager
-    - name: acme-email
   postBuild:
     substituteFrom:
       - kind: Secret
@@ -150,7 +132,7 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: gateway-certificate
+  name: grafana
   namespace: flux-system
 spec:
   interval: 5m
@@ -158,10 +140,14 @@ spec:
   timeout: 10m
   prune: true
   wait: true
-  path: ./flux/installs/cert-manager/certificates
+  path: ./flux/installs/grafana
   sourceRef:
     kind: GitRepository
     name: flux-system
   dependsOn:
     - name: cert-issuers
-    - name: envoy-gateway
+    - name: gateway-config
+  healthCheckExprs:
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: ListenerSet
+      current: has(status.conditions) && status.conditions.exists(c, c.type == 'Programmed' && c.status == 'True' && c.observedGeneration == metadata.generation)

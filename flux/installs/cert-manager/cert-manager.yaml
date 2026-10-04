@@ -1,3 +1,18 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: cert-manager
+  namespace: cert-manager
+spec:
+  type: oci
+  interval: 1h
+  url: oci://quay.io/jetstack/charts
+---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -51,3 +66,28 @@ spec:
           memory: 128Mi
         limits:
           memory: 256Mi
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: acme-email
+  namespace: flux-system
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: gcp-secret-manager
+    kind: ClusterSecretStore
+  target:
+    name: acme-email
+    creationPolicy: Owner
+    template:
+      metadata:
+        labels:
+          reconcile.fluxcd.io/watch: Enabled
+      data:
+        ACME_EMAIL: "{{ .email | trim }}"
+  data:
+    - secretKey: email
+      remoteRef:
+        key: email-account
+        version: latest

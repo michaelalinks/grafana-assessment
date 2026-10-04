@@ -7,22 +7,13 @@ ExternalDNS waits for Envoy (including Gateway API CRDs); Gateway configuration
 waits for Envoy; the ClusterSecretStore waits for External Secrets.
 
 Envoy is centralised: GatewayClass envoy and Gateway public live in
-namespace envoy-gateway-system. Application HTTPRoutes live in their own
-namespaces and attach with:
-  parentRefs:
-    - name: public
-      namespace: envoy-gateway-system
-      sectionName: http
-  hostnames:
-    - grafana.iso.michaelalinks.com
-  rules:
-    - backendRefs:
-        - name: grafana
-          port: 3000
-Use the application's actual Service name and port. The Gateway accepts
-routes from all namespaces, matching the previous cluster's central model.
-HTTPS is configured by the cert-manager installation described in
-docs/https.txt. Application backend routes should use sectionName https.
+namespace envoy-gateway-system. The central Gateway has no app-specific
+hostnames or certificates. Applications own their ListenerSet, Certificate
+and HTTPRoutes alongside their installs. Label the application namespace
+iso.michaelalinks.com/gateway: public to permit attachment.
+HTTPS routes reference their local ListenerSet, whose parentRef points to
+the central Gateway. HTTP redirect routes reference the central Gateway's
+HTTP listener. See docs/https.txt for the full model.
 
 ExternalDNS
 -----------
@@ -36,8 +27,8 @@ It derives the target from the Gateway's public status address. The cloud
 allocates that address through Envoy's LoadBalancer Service, not Terraform.
 Do not create application A records manually: add/remove application
 HTTPRoutes in Git and Flux/ExternalDNS manage the records automatically.
-No application routes exist in this controller-only change, so there are
-no persistent application DNS records yet.
+Grafana's application-owned redirect route supplies its hostname even
+before the Grafana backend is installed.
 
 GoDaddy: one-time delegation
 ---------------------------

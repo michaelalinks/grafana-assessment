@@ -1,75 +1,48 @@
-HTTPS and cert-manager
-=====================
-Flux installs pinned cert-manager chart v1.21.2, then retrieves the ACME
-email using ESO, registers the issuer, issues the certificate, and updates
-the central Gateway. No manual secret copying or certificate installation.
+Shared Gateway and application HTTPS
+====================================
+One Envoy Gateway and one cloud load balancer serve all applications.
+Gateway public in envoy-gateway-system owns the shared HTTP listener and
+accepts ListenerSets from namespaces labelled:
+  iso.michaelalinks.com/gateway: public
+The central Gateway contains no application hostnames or TLS certificates.
 
-Dependency order
+Each application's ListenerSet attaches to Gateway public and declares its
+HTTPS hostname and local TLS Secret. Its HTTPS HTTPRoute references that
+local ListenerSet, which shares the central Gateway's IP and data plane.
+The application also owns its HTTP-to-HTTPS redirect route, referencing the
+central Gateway's HTTP listener. No wildcard certificate is required.
+
+Compact configuration
+---------------------
+flux/installs/cert-manager/cert-manager.yaml groups the namespace, chart
+source, Helm release and ESO email reference. The cert-manager Flux
+Kustomization waits for both the Helm release and email synchronization.
+config/issuer.yaml uses Flux substitution from Secret acme-email. It waits
+for cert-manager before registering the Cloud DNS ACME issuer.
+flux/installs/grafana/networking.yaml groups Grafana's namespace, Certificate,
+ListenerSet and redirect route. The actual Grafana deployment and backend
+HTTPRoute will be added to this application folder in the next task.
+The certificate and its TLS Secret now belong to the grafana namespace.
+An explicit Certificate avoids enabling extra cert-manager shim features.
+
+Identity and DNS
 ----------------
-- cert-manager: controller and CRDs.
-- acme-email: waits for the GCP SecretStore, then retrieves email-account
-  into Secret acme-email in flux-system with key ACME_EMAIL.
-- cert-issuers: waits for cert-manager and acme-email; Flux substitutes the
-  required Secret value into the ClusterIssuer's email field.
-- gateway-certificate: waits for the issuer and Envoy namespace/controller,
-  then issues grafana.iso.michaelalinks.com's certificate into grafana-tls
-  in envoy-gateway-system.
-- gateway-config: waits for the certificate before adding HTTPS on port 443.
+cert-manager, ESO and ExternalDNS use the same GCP service account through
+GKE Workload Identity; there are no JSON keys. ESO retrieves email-account
+from Google Secret Manager. Its actual value stays outside Git but appears
+in the live Secret and ClusterIssuer as required by cert-manager.
+cert-manager generates private keys inside Kubernetes and renews certificates.
+ExternalDNS supports ListenerSet parents via --gateway-listener-sets and
+read-only ListenerSet RBAC. It resolves their shared Gateway's public IP.
+No additional Gateway, load balancer or secret-copying controller is needed.
 
-Google Workload Identity is used throughout. The cert-manager Kubernetes
-service account maps to the same GCP account as ESO and ExternalDNS. Cloud
-DNS DNS-01 challenges are limited to the grafana-assessment managed zone
-for iso.michaelalinks.com. There are no GCP JSON keys or GitHub credentials.
-
-Email and key ownership
------------------------
-The email-account secret and its enabled version are managed in the GCP
-console. The ignored Terraform grants secret-level access to the shared
-GCP service account. ESO trims surrounding whitespace from the email.
-The actual email is never committed; it is present in the live Kubernetes
-Secret and ClusterIssuer, since cert-manager requires a literal email field.
-Changes to the ESO-produced Secret trigger issuer reconciliation via the
-Flux watch label. A missing Secret blocks issuer reconciliation.
-cert-manager generates the ACME account key in cert-manager and the TLS
-private key in envoy-gateway-system. Private keys are never stored in Git.
-The certificate uses ECDSA P-256 and rotates its key during reissuance.
-Renewal is automatic. ExternalDNS manages A/TXT ownership records;
-cert-manager manages temporary _acme-challenge TXT records independently.
-The generated keys may change on a full cluster recreation. Avoid repeated
-rapid full rebuilds because Let's Encrypt production rate limits apply.
-
-Central Gateway routing
------------------------
-Gateway public remains in envoy-gateway-system. It has HTTP and HTTPS
-listeners, with TLS termination using Secret grafana-tls. The HTTP listener
-has an HTTPRoute redirecting grafana.iso.michaelalinks.com to HTTPS. This
-route also supplies the hostname to ExternalDNS, which creates the A record.
-Future Grafana's HTTPRoute lives in its application namespace and attaches
-to Gateway public, sectionName https. Grafana's Service remains internal.
-HTTPS initially returns 404 until the application's HTTPS backend route is
-installed; this is expected, and does not indicate a certificate failure.
-
-Safe verification (no secret values)
-------------------------------------
-kubectl -n cert-manager get helmrelease cert-manager
-kubectl -n flux-system get externalsecret acme-email
-kubectl get clusterissuer letsencrypt-gcp -o jsonpath='{.status.conditions[*].type}{" "}{.status.conditions[*].status}{"\n"}'
-kubectl -n envoy-gateway-system get certificate grafana
-kubectl -n envoy-gateway-system get gateway public
+Verification
+------------
+kubectl -n flux-system get kustomizations
+kubectl -n grafana get certificates,listenersets,httproutes
+kubectl get gateways -A
 curl -I http://grafana.iso.michaelalinks.com
 curl -I https://grafana.iso.michaelalinks.com
-Do not use kubectl get secrets -o yaml or output the substituted issuer
-manifest when recording submission evidence.
-
-Verified on 2026-10-04
-----------------------
-All Flux Kustomizations and cert-manager Helm release were Ready. ESO reported
-SecretSynced, the ACME issuer registered successfully, and the certificate
-was issued with automatic renewal scheduled. Public DNS resolved to Envoy.
-HTTP returned 301 to HTTPS; HTTPS passed normal certificate verification
-and returned the expected 404 before the Grafana backend exists.
-
-After merging this PR, run the ignored Terraform apply to restore bootstrap
-sync to main. The local bootstrap now resets chart values and fingerprints
-the GitOps YAML so changes trigger an update rather than leaving a temporary
-validation branch selected through an out-of-band Helm upgrade.
+Expect one Gateway, a Ready certificate, a Programmed ListenerSet, HTTP 301
+and trusted HTTPS. HTTPS returns 404 until Grafana's backend is installed.
+After merging, the ignored Terraform apply restores Flux sync to main.
