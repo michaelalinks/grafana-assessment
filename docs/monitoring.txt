@@ -11,11 +11,12 @@ Installation
    the chosen password as its value. Never put it in Git or the ZIP.
 3. Merge the manifests into main. Flux installs Prometheus, then Grafana.
    No Terraform apply is needed for application changes.
-4. Open https://grafana.iso.michaelalinks.com and log in as admin with that
-   password. The home dashboard is Grafana & Prometheus Overview, also
-   available under the Assessment folder. Allow a minute for initial samples.
-   Supply reviewer credentials privately; the admin account can modify the
-   instance. Creating a separate Viewer account is an optional manual step.
+4. Open https://grafana.iso.michaelalinks.com without logging in. Anonymous
+   visitors have the Viewer role in Main Org. The home dashboard is Grafana
+   & Prometheus Overview, also available under the Assessment folder. Allow
+   a minute for initial samples. Admin management still requires logging in
+   as admin with the Secret Manager password. Anonymous viewers can read
+   dashboards and query the demo datasource, but cannot edit configuration.
 
 Configuration
 -------------
