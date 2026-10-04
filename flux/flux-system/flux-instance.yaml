@@ -3,6 +3,8 @@ kind: FluxInstance
 metadata:
   name: flux
   namespace: flux-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   distribution:
     version: "2.9.6"

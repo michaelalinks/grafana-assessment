@@ -1,0 +1,85 @@
+Platform controllers and DNS
+============================
+All platform configuration is under flux/. Flux installs pinned Helm charts
+for Envoy Gateway, External Secrets and ExternalDNS. The root Kustomization
+creates separate Flux Kustomizations for each controller and configuration.
+ExternalDNS waits for Envoy (including Gateway API CRDs); Gateway configuration
+waits for Envoy; the ClusterSecretStore waits for External Secrets.
+
+Envoy is centralised: GatewayClass envoy and Gateway public live in
+namespace envoy-gateway-system. Application HTTPRoutes live in their own
+namespaces and attach with:
+  parentRefs:
+    - name: public
+      namespace: envoy-gateway-system
+      sectionName: http
+  hostnames:
+    - grafana.iso.michaelalinks.com
+  rules:
+    - backendRefs:
+        - name: grafana
+          port: 3000
+Use the application's actual Service name and port. The Gateway accepts
+routes from all namespaces, matching the previous cluster's central model.
+Currently only HTTP is configured. cert-manager, HTTPS and Grafana are
+subsequent steps; do not expose credentials before adding HTTPS.
+
+ExternalDNS
+-----------
+Uses Google Workload Identity, no credentials Secret or JSON key.
+Sources: gateway-httproute only. Gateway namespace: envoy-gateway-system.
+Domain filter: iso.michaelalinks.com. Zone filter: grafana-assessment.
+Ownership: TXT registry, owner iso-grafana-assessment, prefix external-dns-.
+Policy sync creates/updates records and removes owned records when routes
+are removed. It does not own Terraform's zone, NS/SOA or ACME challenge records.
+It derives the target from the Gateway's public status address. The cloud
+allocates that address through Envoy's LoadBalancer Service, not Terraform.
+Do not create application A records manually: add/remove application
+HTTPRoutes in Git and Flux/ExternalDNS manage the records automatically.
+No application routes exist in this controller-only change, so there are
+no persistent application DNS records yet.
+
+GoDaddy: one-time delegation
+---------------------------
+Open michaelalinks.com -> DNS -> DNS Records -> Add New Record.
+Add four records, each Type NS, Name iso, TTL default (or 1 hour):
+  Value ns-cloud-c1.googledomains.com
+  Value ns-cloud-c2.googledomains.com
+  Value ns-cloud-c3.googledomains.com
+  Value ns-cloud-c4.googledomains.com
+These are the deployed Cloud DNS zone's nameservers. If recreating the zone,
+check terraform output dns_nameservers in case the assignment changes.
+Keep the parent domain's nameservers and unrelated records unchanged.
+Remove conflicting records at exactly iso if GoDaddy prevents delegation.
+DNS propagation can take time. This parent-provider step is not automated
+because GoDaddy API access has not been configured.
+
+External Secrets
+----------------
+ClusterSecretStore gcp-secret-manager authenticates through the controller's
+annotated Kubernetes service account and GKE metadata server. It refers to
+ornate-artifact-414911. No ExternalSecret fetching values is created yet.
+Add required secret versions through the Secret Manager console when asked;
+never place their values in Git, Terraform or the submission ZIP.
+The three Kubernetes controller accounts map to the same GCP service account
+as requested. IAM permissions are provided by the ignored Terraform.
+
+Rebuild and ownership
+---------------------
+Ignored terraform-local/flux.tf installs Flux Operator and the FluxInstance
+Helm charts. Terraform owns bootstrap; Flux owns platform releases and config.
+The bootstrap reads flux/flux-system/flux-instance.yaml, but the root Kustomize
+build deliberately excludes that file to avoid competing ownership.
+After merging the implementation, Terraform apply bootstraps from main.
+Terraform destroy runs the local Gateway cleanup hook before destroying Flux
+and GKE, waiting for Gateway LoadBalancer Services to be removed.
+A fresh deploy requires existing gcloud authentication, gcloud's GKE plugin,
+Terraform, and kubectl (for automatic teardown); no manual Helm/kubectl apply.
+The existing Flux Operator and FluxInstance Helm releases have been imported
+into local Terraform state. This is not required on a fresh cluster.
+Run Terraform apply once after merging this PR to register the teardown hook.
+The dedicated DNS zone removes its records on Terraform destroy.
+Terraform destroy deletes the Secret Manager secret and any console-created
+versions: preserve that secret separately if you need values across full
+infrastructure deletion. The password must otherwise be re-added in the
+console after recreation; no secret values are automated in this repo.

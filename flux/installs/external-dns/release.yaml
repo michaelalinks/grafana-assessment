@@ -1,0 +1,53 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: external-dns
+  namespace: external-dns
+spec:
+  interval: 10m
+  timeout: 10m
+  releaseName: external-dns
+  chart:
+    spec:
+      chart: external-dns
+      version: "1.23.0"
+      sourceRef:
+        kind: HelmRepository
+        name: external-dns
+        namespace: external-dns
+      interval: 1h
+  install:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  upgrade:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  values:
+    provider:
+      name: google
+    sources:
+      - gateway-httproute
+    domainFilters:
+      - iso.michaelalinks.com
+    policy: sync
+    registry: txt
+    txtOwnerId: iso-grafana-assessment
+    txtPrefix: external-dns-
+    interval: 1m
+    extraArgs:
+      - --google-project=ornate-artifact-414911
+      - --zone-id-filter=grafana-assessment
+      - --google-zone-visibility=public
+      - --gateway-namespace=envoy-gateway-system
+    serviceAccount:
+      name: external-dns
+      annotations:
+        iam.gke.io/gcp-service-account: grafana-assessment@ornate-artifact-414911.iam.gserviceaccount.com
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 256Mi
