@@ -68,7 +68,7 @@ spec:
   healthCheckExprs:
     - apiVersion: gateway.networking.k8s.io/v1
       kind: Gateway
-      current: has(status) && has(status.conditions) && status.conditions.exists(c, c.type == 'Programmed' && c.status == 'True' && c.observedGeneration == metadata.generation)
+      current: has(status.conditions) && status.conditions.exists(c, c.type == 'Programmed' && c.status == 'True' && c.observedGeneration == metadata.generation)
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization

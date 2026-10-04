@@ -75,9 +75,10 @@ Terraform destroy runs the local Gateway cleanup hook before destroying Flux
 and GKE, waiting for Gateway LoadBalancer Services to be removed.
 A fresh deploy requires existing gcloud authentication, gcloud's GKE plugin,
 Terraform, and kubectl (for automatic teardown); no manual Helm/kubectl apply.
-The current pre-existing Flux Operator release must be imported into Terraform
-state once; this is handled as part of the implementation, not each rebuild.
-The existing FluxInstance must also be adopted by the flux-instance chart.
+The existing Flux Operator and FluxInstance Helm releases have been imported
+into local Terraform state. This is not required on a fresh cluster.
+Run Terraform apply once after merging this PR to register the teardown hook.
+The dedicated DNS zone removes its records on Terraform destroy.
 Terraform destroy deletes the Secret Manager secret and any console-created
 versions: preserve that secret separately if you need values across full
 infrastructure deletion. The password must otherwise be re-added in the
