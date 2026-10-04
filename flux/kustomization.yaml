@@ -1,4 +1,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - flux-system/platform.yaml
+  - installs/envoy-gateway/flux-kustomization.yaml
+  - installs/external-secrets/flux-kustomization.yaml
+  - installs/external-dns/flux-kustomization.yaml
+  - installs/envoy-gateway/config/flux-kustomization.yaml
+  - installs/external-secrets/config/flux-kustomization.yaml
