@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: iso-flux-test
+  labels:
+    app.kubernetes.io/part-of: iso-grafana-install
+    app.kubernetes.io/managed-by: flux
