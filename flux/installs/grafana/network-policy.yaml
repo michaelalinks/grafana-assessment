@@ -42,6 +42,11 @@ spec:
           podSelector:
             matchLabels:
               k8s-app: kube-dns
+        # Calico cannot select host-networked NodeLocal DNS pods by labels.
+        - ipBlock:
+            cidr: 10.45.0.10/32
+        - ipBlock:
+            cidr: 169.254.20.10/32
       ports:
         - protocol: UDP
           port: 53
