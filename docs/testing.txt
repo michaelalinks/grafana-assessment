@@ -1,15 +1,17 @@
 Automated testing
 =================
 CI renders every Kustomize directory on pull requests and main pushes. It
-requires no cloud credentials. Live CRD/schema acceptance was separately
+requires no cloud credentials and checks pytest test discovery without
+executing live tests. Live CRD/schema acceptance was separately
 checked with server dry runs during deployment; rendering alone does not
 prove API acceptance.
 
-Live integration suite prerequisites: Python 3, kubectl, dig and curl;
+Live integration suite prerequisites: Python 3, pip, kubectl and dig;
 authenticated kubeconfig for the assessment cluster; internet access.
 Run from the repository root:
 
-  python3 tests/integration.py
+  python3 -m pip install -r tests/requirements.txt
+  python3 -m pytest tests/ -v
 
 The suite checks Flux/Helm readiness, deployment rollout, public HTTPS health,
 all seven dashboard queries, both scrape targets up, anonymous read-only
@@ -20,12 +22,12 @@ environment when necessary.
 
 The network test temporarily creates one small credential-free pod in the
 default namespace, tests blocked ingress to both application service IPs,
-and deletes it in finally. An active deadline limits its lifetime if the
+and a pytest fixture deletes it after the test, including on failure. An active deadline limits its lifetime if the
 runner is interrupted. This requires create/delete/exec pod permissions.
 The test does not read secrets or require Grafana administrator credentials.
 Use only the intended assessment kubeconfig. Tests return nonzero on failure.
 
-These are integration tests implemented with Python unittest, rather than
+These are integration tests implemented with pytest, rather than
 unit tests of custom application logic. No custom application logic exists.
 CI does not contact the live cluster. Pod replacement/persistence and full
 infrastructure recreation remain separate procedures; this suite does not

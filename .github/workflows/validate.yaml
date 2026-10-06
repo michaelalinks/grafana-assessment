@@ -20,5 +20,7 @@ jobs:
           while IFS= read -r file; do
             kubectl kustomize "$(dirname "$file")" > /dev/null
           done < <(find flux -name kustomization.yaml -print)
-      - name: Check integration script syntax
-        run: python3 -m py_compile tests/integration.py
+      - name: Install test dependencies
+        run: python3 -m pip install -r tests/requirements.txt
+      - name: Check test discovery without contacting the cluster
+        run: python3 -m pytest tests/ --collect-only -q
