@@ -56,7 +56,6 @@ spec:
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
-        runAsGroup: 472
         fsGroup: 472
         fsGroupChangePolicy: OnRootMismatch
       containers:
@@ -78,6 +77,7 @@ spec:
             limits:
               memory: 512Mi
           securityContext:
+            runAsGroup: 472
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:
