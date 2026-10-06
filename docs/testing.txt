@@ -79,9 +79,3 @@ https://github.com/google-github-actions/auth
 https://github.com/google-github-actions/auth/blob/main/docs/SECURITY_CONSIDERATIONS.md
 https://github.com/google-github-actions/get-gke-credentials
 
-Current setup status: GitHub returned HTTP 500 on repository-secret writes.
-The five identifier values are prepared locally in the ignored
-terraform-local/github-config.env. Add them under repository Settings >
-Secrets and variables > Actions before merging or manually starting the live
-workflow. No credential keys are present in that file. Terraform has been
-planned/validated but must still be applied from the terminal.
