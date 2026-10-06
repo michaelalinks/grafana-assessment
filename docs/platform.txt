@@ -98,7 +98,7 @@ GatewayClass.spec.controllerName remains: it is required by Gateway API.
 The chart's default config.envoyGateway.gateway.controllerName configures
 the controller, and does not create or replace that required GatewayClass.
 Identity, listener-set RBAC, DNS scoping/ownership, route attachment,
-configuration provisioning, storage, probes and isolation stay explicit.
+configuration provisioning, storage and probes stay explicit.
 
 The earlier Flux CPU patch is removed after the controller overrides are
 removed; default Flux requests now fit the existing node. Grafana/Prometheus
@@ -117,7 +117,7 @@ https://fluxcd.io/flux/components/source/helmrepositories/
 https://fluxcd.io/flux/components/helm/helmreleases/
 https://grafana.com/docs/grafana/latest/administration/provisioning/
 
-Cleanup validation on the feature branch:
+Historical cleanup validation before removal of application NetworkPolicies:
 - Built all ten Kustomize directories and server-dry-ran application manifests.
 - Rendered original/reduced values against exact target charts: resource
   identities and Workload Identity annotations match; only resources differ.

@@ -9,7 +9,6 @@ import pytest
 import urllib.error
 import urllib.parse
 import urllib.request
-import uuid
 
 HOST = os.environ.get('GRAFANA_HOST', 'grafana.healthtech.michaelalinks.com')
 ZONE = os.environ.get('DNS_ZONE', 'healthtech.michaelalinks.com')
@@ -155,46 +154,3 @@ def test_http_redirect():
         assert caught.value.headers['Location'] == 'https://' + HOST + '/'
     finally:
         caught.value.close()
-
-
-
-@pytest.fixture
-def probe_pod():
-    # Create a temporary probe pod and delete it after the test, even if it fails.
-    # Its active deadline also stops it if the test runner is interrupted.
-    name = 'assessment-test-' + uuid.uuid4().hex[:10]
-    image = resource('deployment', 'grafana', 'grafana')['spec']['template']['spec']['containers'][0]['image']
-    pod = {'apiVersion': 'v1', 'kind': 'Pod', 'metadata': {'name': name, 'namespace': 'default'},
-           'spec': {'automountServiceAccountToken': False, 'restartPolicy': 'Never',
-                    'activeDeadlineSeconds': TIMEOUT + 120,
-                    'containers': [{'name': 'probe', 'image': image, 'command': ['sleep', str(TIMEOUT + 120)],
-                                    'resources': {'requests': {'cpu': '1m', 'memory': '32Mi'},
-                                                  'limits': {'memory': '64Mi'}}}]}}
-    try:
-        subprocess.run(['kubectl', 'create', '-f', '-'], input=json.dumps(pod),
-                       text=True, check=True, timeout=30)
-        command('kubectl', '-n', 'default', 'wait', '--for=condition=Ready', 'pod/' + name,
-                f'--timeout={TIMEOUT}s')
-        yield name
-    finally:
-        subprocess.run(['kubectl', '-n', 'default', 'delete', 'pod', name,
-                        '--ignore-not-found', '--wait=false'], check=True, timeout=30)
-
-
-def test_network_isolation(probe_pod):
-    # IPs avoid mistaking a DNS failure for network isolation.
-    for namespace, service, port in [('grafana', 'grafana', 3000),
-                                     ('monitoring', 'prometheus', 9090)]:
-        ip = resource('service', service, namespace)['spec']['clusterIP']
-        result = subprocess.run(['kubectl', '-n', 'default', 'exec', probe_pod, '--',
-                                 'curl', '--silent', '--show-error', '--max-time', '3',
-                                 f'http://{ip}:{port}/'], capture_output=True, text=True, timeout=15)
-        assert result.returncode == 28, result.stderr
-
-
-
-def test_external_egress_blocked():
-    result = subprocess.run(['kubectl', '-n', 'grafana', 'exec', 'deployment/grafana', '--',
-                             'curl', '--silent', '--show-error', '--max-time', '3',
-                             'http://1.1.1.1/'], capture_output=True, text=True, timeout=15)
-    assert result.returncode == 28, result.stderr

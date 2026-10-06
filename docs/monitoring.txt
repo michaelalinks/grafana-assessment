@@ -102,53 +102,12 @@ configuration change replaced the pod. The existing admin account remained
 usable. No browser visual inspection or full teardown/rebuild was performed.
 Temporary localhost port forwarding used for testing was closed afterward.
 
-Network isolation
------------------
-Grafana and monitoring each have a NetworkPolicy selecting all namespace
-pods for ingress and egress. Grafana accepts port 3000 only from the central
-Envoy proxy and Prometheus. It can connect only to Prometheus port 9090 and
-DNS. Prometheus accepts port 9090 only from Grafana and itself, and can
-connect only to Grafana port 3000, itself port 9090 and DNS. Response traffic
-for allowed connections is permitted automatically.
-
-DNS is allowed to kube-dns pods and the cluster's NodeLocal DNS addresses
-10.45.0.10 and 169.254.20.10 on TCP/UDP 53. The service address follows the
-ignored Terraform's fixed service CIDR; update it if that CIDR changes.
-No GCP metadata-server access is allowed for either workload: neither needs
-a cloud identity. Neither workload mounts a Kubernetes service-account token.
-
-The ignored Terraform enables the GKE Calico addon and node enforcement.
-Enabling it on an existing cluster re-creates nodes and causes downtime in
-this single-node demo. Policies require active enforcement to be effective.
-These policies isolate the monitoring namespaces, not every cluster workload;
-controller communication remains managed by the respective installations.
-Kubernetes NetworkPolicy does not provide protection from cluster/node
-administrators or all host-network traffic. Anonymous viewers retain access
-to the demo datasource through Grafana, including queries beyond dashboard
-panels; it must contain only metrics suitable for public viewing.
-
-Isolation verification (2026-10-06)
------------------------------------
-GKE reports networkPolicy enabled with provider CALICO; the node is labelled
-projectcalico.org/ds-ready=true and calico-node is Running. Flux reconciled
-all eleven Kustomizations successfully on feat/monitoring-isolation.
-
-Before enforcement, a credential-free pod in default reached both Grafana
-and Prometheus with HTTP 200. After enforcement, the same test paths timed
-out (curl exit 28). Grafana connections to cert-manager's metrics endpoint
-and an external HTTPS website also timed out. Public anonymous dashboard
-access and datasource-proxy queries still succeeded; both scrape targets
-reported up=1. The temporary test pod was removed after verification.
-
-The added networking workloads required CPU reservation headroom. Measured
-CPU usage was low, but existing requests prevented the bootstrap healthcheck
-from scheduling. Flux controllers now request 25m each; Grafana, Prometheus
-and the Envoy controller request 50m each. CPU requests reserve scheduling
-capacity and are not hard caps. Memory settings are unchanged. The bootstrap
-healthcheck requests 10m in the ignored Terraform. The original single-node
-machine size is retained; no new cloud resources were added.
-
-A subsequent chart-default review removes the supporting controller resource
-overrides and the bootstrap CPU patch. Historical reservation reductions
-above describe the original isolation rollout, not the final chart defaults.
-Grafana and Prometheus still declare their own resource budgets.
+Internal connectivity
+---------------------
+Grafana and Prometheus have no application NetworkPolicies. Cluster workloads
+can use their internal ClusterIP endpoints subject to any policies applied
+elsewhere. Only Grafana is routed through the public Envoy Gateway; Prometheus
+has no public route. This setup does not contain a compromised application
+using pod-level network isolation. Neither application mounts an API token.
+Anonymous viewers can query the configured datasource, so its data must be
+appropriate for public viewing.
