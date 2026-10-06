@@ -6,7 +6,6 @@ metadata:
 spec:
   interval: 5m
   retryInterval: 30s
-  timeout: 10m
   prune: true
   wait: true
   path: ./flux/installs/envoy-gateway
@@ -22,7 +21,6 @@ metadata:
 spec:
   interval: 5m
   retryInterval: 30s
-  timeout: 10m
   prune: true
   wait: true
   path: ./flux/installs/external-secrets
@@ -38,7 +36,6 @@ metadata:
 spec:
   interval: 5m
   retryInterval: 30s
-  timeout: 10m
   prune: true
   wait: true
   path: ./flux/installs/external-dns
@@ -56,7 +53,6 @@ metadata:
 spec:
   interval: 5m
   retryInterval: 30s
-  timeout: 10m
   prune: true
   wait: true
   path: ./flux/installs/envoy-gateway/config
@@ -78,7 +74,6 @@ metadata:
 spec:
   interval: 5m
   retryInterval: 30s
-  timeout: 10m
   prune: true
   wait: true
   path: ./flux/installs/external-secrets/config
@@ -96,7 +91,6 @@ metadata:
 spec:
   interval: 5m
   retryInterval: 30s
-  timeout: 10m
   prune: true
   wait: true
   path: ./flux/installs/cert-manager
@@ -114,7 +108,6 @@ metadata:
 spec:
   interval: 5m
   retryInterval: 30s
-  timeout: 10m
   prune: true
   wait: true
   path: ./flux/installs/cert-manager/config
@@ -127,7 +120,6 @@ spec:
     substituteFrom:
       - kind: Secret
         name: acme-email
-        optional: false
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -137,7 +129,6 @@ metadata:
 spec:
   interval: 5m
   retryInterval: 30s
-  timeout: 10m
   prune: true
   wait: true
   path: ./flux/installs/grafana
@@ -161,7 +152,6 @@ metadata:
 spec:
   interval: 5m
   retryInterval: 30s
-  timeout: 10m
   prune: true
   wait: true
   path: ./flux/installs/prometheus

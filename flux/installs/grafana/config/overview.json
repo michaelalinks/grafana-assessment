@@ -41,8 +41,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short"
-        },
-        "overrides": []
+        }
       },
       "options": {
         "reduceOptions": {
@@ -81,8 +80,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short"
-        },
-        "overrides": []
+        }
       },
       "options": {
         "reduceOptions": {
@@ -121,8 +119,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "s"
-        },
-        "overrides": []
+        }
       },
       "options": {
         "reduceOptions": {
@@ -160,10 +157,8 @@
       "fieldConfig": {
         "defaults": {
           "unit": "cores"
-        },
-        "overrides": []
-      },
-      "options": {}
+        }
+      }
     },
     {
       "id": 5,
@@ -189,10 +184,8 @@
       "fieldConfig": {
         "defaults": {
           "unit": "bytes"
-        },
-        "overrides": []
-      },
-      "options": {}
+        }
+      }
     },
     {
       "id": 6,
@@ -218,10 +211,8 @@
       "fieldConfig": {
         "defaults": {
           "unit": "s"
-        },
-        "overrides": []
-      },
-      "options": {}
+        }
+      }
     },
     {
       "id": 7,
@@ -247,16 +238,8 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short"
-        },
-        "overrides": []
-      },
-      "options": {}
+        }
+      }
     }
-  ],
-  "templating": {
-    "list": []
-  },
-  "annotations": {
-    "list": []
-  }
+  ]
 }
