@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: assessment
+    folder: Assessment
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards

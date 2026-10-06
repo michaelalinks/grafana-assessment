@@ -20,3 +20,7 @@ __pycache__/
 # Temporary GitHub Actions federation credentials and kubeconfig.
 gha-creds-*.json
 gha-kubeconfig-*
+
+# Portable bootstrap tooling and test environment.
+/flux-standalone/.bin/
+/flux-standalone/.venv/
