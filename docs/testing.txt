@@ -15,24 +15,61 @@ Run from the repository root:
 
 The suite checks Flux/Helm readiness, deployment rollout, public HTTPS health,
 all seven dashboard queries, both scrape targets up, anonymous read-only
-permissions, blocked external egress, HTTP redirect, public DNS and every delegated authoritative
-nameserver against the current central Gateway IP. DNS and health retry for
+permissions, blocked external egress, HTTP redirect, public DNS and every
+delegated authoritative nameserver against the current central Gateway IP. DNS and health retry for
 up to 300 seconds. Override TEST_TIMEOUT, GRAFANA_HOST or DNS_ZONE via the
 environment when necessary.
 
 The network test temporarily creates one small credential-free pod in the
 default namespace, tests blocked ingress to both application service IPs,
-and a pytest fixture deletes it after the test, including on failure. An active deadline limits its lifetime if the
-runner is interrupted. This requires create/delete/exec pod permissions.
+and a pytest fixture deletes it after the test, including on failure. An
+active deadline limits its lifetime if the runner is interrupted. This requires create/delete/exec pod permissions.
 The test does not read secrets or require Grafana administrator credentials.
 Use only the intended assessment kubeconfig. Tests return nonzero on failure.
 
 These are integration tests implemented with pytest, rather than
 unit tests of custom application logic. No custom application logic exists.
-CI does not contact the live cluster. Pod replacement/persistence and full
-infrastructure recreation remain separate procedures; this suite does not
+PR validation does not contact the live cluster. Pod replacement/persistence
+and full infrastructure recreation remain separate procedures; this suite does not
 restart application pods or destroy infrastructure.
 
 Verification (2026-10-06): all eight live integration tests passed against
-GKE/main in approximately 25 seconds. All ten Kustomize directories rendered
-successfully. Temporary isolation probe pods were deleted.
+GKE/main. The exact-revision gate also passed against main. All eleven
+Kustomize directories (including test RBAC) rendered successfully. Temporary isolation probe pods were deleted.
+
+GitHub live integration workflow
+-------------------------------
+Live integration tests runs on pushes to main and can be dispatched manually
+on main. It waits until every Flux Kustomization is Ready at the triggering
+commit (EXPECTED_REVISION), then runs the actual suite. The newest main run
+cancels an older one; job timeouts and probe deadlines bound interrupted
+runs. PR validation continues to run without cloud credentials.
+
+Authentication uses GitHub OIDC, GCP Workload Identity Federation and the
+existing grafana-assessment service account. No service-account key or
+GitHub secret is required. GKE uses its IAM-protected DNS endpoint. Federation
+is restricted to immutable repository/owner IDs, main, this exact workflow
+and push/manual events. PR workflows cannot authenticate.
+
+One-time setup: apply the added terraform-local/github-tests.tf using your
+normal local Terraform apply before merging the workflow PR. This creates
+the federation pool/provider, impersonation binding and the GKE connection
+role (container.clusterViewer). These files remain ignored. The workflow uses
+the provider's known resource name; no repository variable setup is needed.
+Flux deploys test RBAC automatically after merge.
+
+Kubernetes RBAC grants Flux/Helm status reads, workload reads in grafana and
+monitoring, the central Gateway read, temporary pod operations in default,
+and exec for isolation checks. It does not grant Kubernetes Secret reads or
+deployment writes. Reusing the shared GCP identity means the job inherits
+that account's existing Cloud DNS/Secret Manager IAM privileges; tests do
+not use them. This preserves the chosen single-account setup.
+
+Terraform validation, Kustomize rendering and RBAC server dry runs are
+performed before merge. The federated GitHub run and its service-account RBAC still need verification
+after Terraform apply and merge. Local administrator tests do not prove
+GitHub authentication/authorization.
+Official action guidance:
+https://github.com/google-github-actions/auth
+https://github.com/google-github-actions/auth/blob/main/docs/SECURITY_CONSIDERATIONS.md
+https://github.com/google-github-actions/get-gke-credentials

@@ -16,3 +16,7 @@ __pycache__/
 *.pyc
 
 .pytest_cache/
+
+# Temporary GitHub Actions federation credentials and kubeconfig.
+gha-creds-*.json
+gha-kubeconfig-*

@@ -41,6 +41,26 @@ def eventually(check):
 
 
 
+@pytest.fixture(scope='session', autouse=True)
+def deployed_revision():
+    expected = os.environ.get('EXPECTED_REVISION')
+    if not expected:
+        return
+
+    def check():
+        items = json.loads(command('kubectl', 'get',
+                                   'kustomizations.kustomize.toolkit.fluxcd.io',
+                                   '-A', '-o', 'json'))['items']
+        assert items, 'No Flux Kustomizations found'
+        for item in items:
+            status = item.get('status', {})
+            assert status.get('lastAppliedRevision', '').endswith(':' + expected), item['metadata']['name']
+            assert any(c['type'] == 'Ready' and c['status'] == 'True'
+                       and c.get('observedGeneration') == item['metadata']['generation']
+                       for c in status.get('conditions', [])), item['metadata']['name']
+    eventually(check)
+
+
 def test_reconciliation():
     for kind in ('kustomizations.kustomize.toolkit.fluxcd.io',
                  'helmreleases.helm.toolkit.fluxcd.io'):
