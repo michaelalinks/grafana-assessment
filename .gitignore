@@ -10,3 +10,7 @@ crash.log
 # Credentials must never be included in the submission.
 .env
 .env.*
+
+# Python test bytecode.
+__pycache__/
+*.pyc
