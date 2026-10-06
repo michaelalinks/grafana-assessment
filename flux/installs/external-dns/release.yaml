@@ -23,14 +23,14 @@ spec:
     txtOwnerId: iso-grafana-assessment
     txtPrefix: external-dns-
     extraArgs:
-    - --google-project=ornate-artifact-414911
+    - --google-project=${GCP_PROJECT_ID}
     - --zone-id-filter=grafana-assessment
     - --google-zone-visibility=public
     - --gateway-namespace=envoy-gateway-system
     - --gateway-listener-sets
     serviceAccount:
       annotations:
-        iam.gke.io/gcp-service-account: grafana-assessment@ornate-artifact-414911.iam.gserviceaccount.com
+        iam.gke.io/gcp-service-account: ${GCP_SERVICE_ACCOUNT}
     rbac:
       additionalPermissions:
       - apiGroups: [gateway.networking.k8s.io]

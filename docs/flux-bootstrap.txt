@@ -1,17 +1,21 @@
 Flux bootstrap on GKE
 =====================
-Cluster: grafana-assessment, ornate-artifact-414911, europe-west2-a.
+Cluster: grafana-assessment, ${GCP_PROJECT_ID}, europe-west2-a.
 Operator chart: 0.61.0. Flux controllers: 2.9.6.
 Git source: public https://github.com/michaelalinks/grafana-assessment.git
 Branch: main. Path: flux.
 No Git authentication secret is required for this public repository.
 
-Bootstrap commands (after Terraform creates the cluster)
--------------------------------------------------------
-gcloud components install gke-gcloud-auth-plugin
-gcloud container clusters get-credentials grafana-assessment --project=ornate-artifact-414911 --zone=europe-west2-a --dns-endpoint
-helm upgrade --install flux-operator oci://ghcr.io/controlplaneio-fluxcd/charts/flux-operator --version 0.61.0 --namespace flux-system --create-namespace --wait --timeout 3m
-kubectl apply -f flux/flux-system/flux-instance.yaml
+Bootstrap and credentials
+-------------------------
+Run Terraform apply from the ignored terraform-local directory. It installs
+Flux and injects environment-specific identifiers into root substitution.
+Retrieve the cluster credentials using the command from:
+
+  terraform -chdir=terraform-local output -raw get_credentials_command
+
+Do not apply the standalone FluxInstance file directly: Terraform supplies
+its environment-specific root substitution patch.
 
 If the auth plugin is not on PATH, add the Google Cloud SDK bin directory
 printed by gcloud info to PATH, or set its absolute exec-command in the

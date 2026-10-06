@@ -31,7 +31,7 @@ spec:
       enabled: true
     serviceAccount:
       annotations:
-        iam.gke.io/gcp-service-account: grafana-assessment@ornate-artifact-414911.iam.gserviceaccount.com
+        iam.gke.io/gcp-service-account: ${GCP_SERVICE_ACCOUNT}
 ---
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret

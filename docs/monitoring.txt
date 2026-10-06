@@ -7,7 +7,7 @@ Installation
 ------------
 1. Apply the ignored terraform-local infrastructure as documented there.
 2. In GCP Secret Manager, add an enabled version of the secret
-   assessment-grafana-admin-password in ornate-artifact-414911. Store only
+   assessment-grafana-admin-password in ${GCP_PROJECT_ID}. Store only
    the chosen password as its value. Never put it in Git or the ZIP.
 3. Merge the manifests into main. Flux installs Prometheus, then Grafana.
    No Terraform apply is needed for application changes.
