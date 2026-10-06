@@ -2,7 +2,7 @@ Flux bootstrap on GKE
 =====================
 Cluster: grafana-assessment, ornate-artifact-414911, europe-west2-a.
 Operator chart: 0.61.0. Flux controllers: 2.9.6.
-Git source: public https://github.com/michaelalinks/iso-grafana-install.git
+Git source: public https://github.com/michaelalinks/grafana-assessment.git
 Branch: main. Path: flux.
 No Git authentication secret is required for this public repository.
 

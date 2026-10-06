@@ -18,8 +18,17 @@ spec:
     type: kubernetes
     networkPolicy: true
     domain: cluster.local
+  kustomize:
+    patches:
+      - target:
+          kind: Deployment
+          name: "(source-controller|kustomize-controller|helm-controller|notification-controller)"
+        patch: |
+          - op: replace
+            path: /spec/template/spec/containers/0/resources/requests/cpu
+            value: 25m
   sync:
     kind: GitRepository
-    url: https://github.com/michaelalinks/iso-grafana-install.git
+    url: https://github.com/michaelalinks/grafana-assessment.git
     ref: refs/heads/main
     path: flux
