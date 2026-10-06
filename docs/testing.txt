@@ -14,7 +14,8 @@ Run from the repository root:
   python3 -m pytest tests/ -v
 
 The suite checks Flux/Helm readiness, deployment rollout, public HTTPS health,
-all seven dashboard queries, both scrape targets up, anonymous read-only
+all seven metric queries, Loki logs from both demo applications, scrape
+targets up, anonymous read-only
 permissions, HTTP redirect, public DNS and every
 delegated authoritative nameserver against the current central Gateway IP. DNS and health retry for
 up to 300 seconds. Override TEST_TIMEOUT, GRAFANA_HOST or DNS_ZONE via the
@@ -34,7 +35,7 @@ Verification (2026-10-06): the original eight live integration tests passed agai
 GKE/main. The exact-revision gate also passed against main. All ten
 Kustomize directories rendered successfully. Network isolation tests and their
 probe fixture have since been removed along with the application policies;
-the current suite contains six checks.
+the current suite contains seven checks including Loki ingestion.
 
 GitHub live integration workflow
 -------------------------------

@@ -69,7 +69,8 @@ def test_reconciliation():
             command('kubectl', '-n', item['metadata']['namespace'], 'wait',
                     '--for=condition=Ready', kind + '/' + item['metadata']['name'],
                     f'--timeout={TIMEOUT}s')
-    for namespace, name in [('grafana', 'grafana'), ('monitoring', 'prometheus')]:
+    for namespace, name in [('grafana', 'grafana'), ('monitoring', 'prometheus'), ('monitoring', 'loki'),
+                            ('monitoring', 'alloy')]:
         command('kubectl', '-n', namespace, 'rollout', 'status', 'deployment/' + name,
                 f'--timeout={TIMEOUT}s')
 
@@ -113,7 +114,7 @@ def test_dashboard_and_datasource():
     assert dashboard['meta']['provisioned']
     assert not dashboard['meta']['canEdit']
     panels = dashboard['dashboard']['panels']
-    assert len(panels) == 7
+    assert len(panels) == 8
     def query(expression):
         result = request('/api/datasources/proxy/uid/prometheus/api/v1/query?' +
                          urllib.parse.urlencode({'query': expression}))
@@ -126,6 +127,8 @@ def test_dashboard_and_datasource():
         assert matching, f'Missing scrape target {job}'
         assert all(float(t['value'][1]) == 1 for t in matching), job
     for panel in panels:
+        if panel['datasource']['uid'] != 'prometheus':
+            continue
         expressions = [t['expr'] for t in panel.get('targets', []) if 'expr' in t]
         assert expressions, panel['title']
         for expression in expressions:
@@ -154,3 +157,14 @@ def test_http_redirect():
         assert caught.value.headers['Location'] == 'https://' + HOST + '/'
     finally:
         caught.value.close()
+
+
+def test_loki_logs():
+    def check():
+        for app in ('grafana', 'prometheus'):
+            query = urllib.parse.urlencode({'query': '{app="' + app + '"}', 'limit': 1})
+            result = request('/api/datasources/proxy/uid/loki/loki/api/v1/query_range?' + query)
+            assert result['status'] == 'success'
+            streams = result['data']['result']
+            assert streams and any(stream['values'] for stream in streams), app
+    eventually(check)

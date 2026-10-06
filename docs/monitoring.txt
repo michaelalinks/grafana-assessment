@@ -12,8 +12,7 @@ Installation
 3. Merge the manifests into main. Flux installs Prometheus, then Grafana.
    No Terraform apply is needed for application changes.
 4. Open https://grafana.healthtech.michaelalinks.com without logging in. Anonymous
-   visitors have the Viewer role in Main Org. The home dashboard is Grafana
-   & Prometheus Overview, also available under the Assessment folder. Allow
+   visitors have the Viewer role in Main Org. The home dashboard is Metrics & Logs Overview, also available under the Assessment folder. Allow
    a minute for initial samples. Admin management still requires logging in
    as admin with the Secret Manager password. Anonymous viewers can read
    dashboards and query the demo datasource, but cannot edit configuration.
@@ -111,3 +110,7 @@ has no public route. This setup does not contain a compromised application
 using pod-level network isolation. Neither application mounts an API token.
 Anonymous viewers can query the configured datasource, so its data must be
 appropriate for public viewing.
+
+Loki is now provisioned as a second data source. The eighth dashboard panel
+shows Grafana and Prometheus container logs collected by Alloy. See
+logging.txt for collection scope, retention, chart configuration and tests.
