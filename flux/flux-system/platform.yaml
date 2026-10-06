@@ -27,6 +27,9 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-system
+  postBuild:
+    substitute:
+      GCP_SERVICE_ACCOUNT: "${GCP_SERVICE_ACCOUNT}"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -44,6 +47,10 @@ spec:
     name: flux-system
   dependsOn:
     - name: envoy-gateway
+  postBuild:
+    substitute:
+      GCP_PROJECT_ID: "${GCP_PROJECT_ID}"
+      GCP_SERVICE_ACCOUNT: "${GCP_SERVICE_ACCOUNT}"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -82,6 +89,9 @@ spec:
     name: flux-system
   dependsOn:
     - name: external-secrets
+  postBuild:
+    substitute:
+      GCP_PROJECT_ID: "${GCP_PROJECT_ID}"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -99,6 +109,9 @@ spec:
     name: flux-system
   dependsOn:
     - name: secret-store
+  postBuild:
+    substitute:
+      GCP_SERVICE_ACCOUNT: "${GCP_SERVICE_ACCOUNT}"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -117,6 +130,8 @@ spec:
   dependsOn:
     - name: cert-manager
   postBuild:
+    substitute:
+      GCP_PROJECT_ID: "${GCP_PROJECT_ID}"
     substituteFrom:
       - kind: Secret
         name: acme-email

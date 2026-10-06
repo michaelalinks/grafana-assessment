@@ -46,7 +46,7 @@ External Secrets
 ----------------
 ClusterSecretStore gcp-secret-manager authenticates through the controller's
 annotated Kubernetes service account and GKE metadata server. It refers to
-ornate-artifact-414911. ExternalSecrets fetch the Grafana admin password and
+${GCP_PROJECT_ID}. ExternalSecrets fetch the Grafana admin password and
 ACME email; values remain outside Git.
 Add required secret versions through the Secret Manager console when asked;
 never place their values in Git, Terraform or the submission ZIP.

@@ -10,3 +10,13 @@ crash.log
 # Credentials must never be included in the submission.
 .env
 .env.*
+
+# Python test bytecode.
+__pycache__/
+*.pyc
+
+.pytest_cache/
+
+# Temporary GitHub Actions federation credentials and kubeconfig.
+gha-creds-*.json
+gha-kubeconfig-*

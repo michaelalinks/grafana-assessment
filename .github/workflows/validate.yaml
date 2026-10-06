@@ -1,0 +1,33 @@
+name: Validate configuration
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  kustomize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-kubectl@v4
+        with:
+          version: v1.35.0
+
+      - name: Render every Kustomize directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r file; do
+            kubectl kustomize "$(dirname "$file")" > /dev/null
+          done < <(find flux -name kustomization.yaml -print)
+
+      - name: Install test dependencies
+        run: python3 -m pip install -r tests/requirements.txt
+
+      - name: Check test discovery without contacting the cluster
+        run: python3 -m pytest tests/ --collect-only -q

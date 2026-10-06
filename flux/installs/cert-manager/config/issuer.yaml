@@ -14,5 +14,5 @@ spec:
             - healthtech.michaelalinks.com
         dns01:
           cloudDNS:
-            project: ornate-artifact-414911
+            project: ${GCP_PROJECT_ID}
             hostedZoneName: grafana-assessment
