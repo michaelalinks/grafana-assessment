@@ -87,7 +87,6 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /etc/prometheus
-              readOnly: true
             - name: data
               mountPath: /prometheus
       volumes:
