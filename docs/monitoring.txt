@@ -11,7 +11,7 @@ Installation
    the chosen password as its value. Never put it in Git or the ZIP.
 3. Merge the manifests into main. Flux installs Prometheus, then Grafana.
    No Terraform apply is needed for application changes.
-4. Open https://grafana.iso.michaelalinks.com without logging in. Anonymous
+4. Open https://grafana.healthtech.michaelalinks.com without logging in. Anonymous
    visitors have the Viewer role in Main Org. The home dashboard is Grafana
    & Prometheus Overview, also available under the Assessment folder. Allow
    a minute for initial samples. Admin management still requires logging in
@@ -58,7 +58,7 @@ Verification
 kubectl -n flux-system get gitrepositories,kustomizations
 kubectl -n monitoring get deployments,pods,pvc,services
 kubectl -n grafana get deployments,pods,pvc,externalsecrets,certificates,httproutes
-curl --fail https://grafana.iso.michaelalinks.com/api/health
+curl --fail https://grafana.healthtech.michaelalinks.com/api/health
 
 Expected: Flux Ready on main, workloads Available, PVCs Bound, ExternalSecret
 and Certificate Ready, HTTPRoute Accepted and ResolvedRefs True. The health

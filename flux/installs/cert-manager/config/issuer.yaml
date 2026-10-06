@@ -11,7 +11,7 @@ spec:
     solvers:
       - selector:
           dnsZones:
-            - iso.michaelalinks.com
+            - healthtech.michaelalinks.com
         dns01:
           cloudDNS:
             project: ornate-artifact-414911

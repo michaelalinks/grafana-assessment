@@ -3,7 +3,7 @@ kind: Namespace
 metadata:
   name: grafana
   labels:
-    iso.michaelalinks.com/gateway: public
+    healthtech.michaelalinks.com/gateway: public
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -13,7 +13,7 @@ metadata:
 spec:
   secretName: grafana-tls
   dnsNames:
-    - grafana.iso.michaelalinks.com
+    - grafana.healthtech.michaelalinks.com
   issuerRef:
     kind: ClusterIssuer
     name: letsencrypt-gcp
@@ -35,7 +35,7 @@ spec:
     group: gateway.networking.k8s.io
   listeners:
     - name: https
-      hostname: grafana.iso.michaelalinks.com
+      hostname: grafana.healthtech.michaelalinks.com
       protocol: HTTPS
       port: 443
       tls:
@@ -53,7 +53,7 @@ metadata:
   namespace: grafana
 spec:
   hostnames:
-    - grafana.iso.michaelalinks.com
+    - grafana.healthtech.michaelalinks.com
   parentRefs:
     - name: public
       namespace: envoy-gateway-system
@@ -72,7 +72,7 @@ metadata:
   namespace: grafana
 spec:
   hostnames:
-    - grafana.iso.michaelalinks.com
+    - grafana.healthtech.michaelalinks.com
   parentRefs:
     - name: grafana
       kind: ListenerSet
