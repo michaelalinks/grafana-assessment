@@ -47,3 +47,19 @@ https://grafana.com/docs/loki/latest/operations/storage/retention/
 https://grafana.com/docs/alloy/latest/collect/logs-in-kubernetes/
 https://grafana.com/docs/alloy/latest/reference/components/loki/loki.source.kubernetes/
 https://github.com/grafana/helm-charts/tree/main/charts/alloy
+
+Recorded live verification (2026-10-06)
+-------------------------------------
+Flux reconciled the feature revision and all seven pytest checks passed,
+including nonempty Loki streams for app=grafana and app=prometheus through
+Grafana's anonymous datasource proxy. The dashboard has eight provisioned
+panels; its seven metric queries still return data. Alloy's tailers opened
+both container log streams. Loki's PVC is Bound and all application pods
+are Ready without restarts. CPU requests total 1911m/1930m; only 19m remains
+for additional pod scheduling. Memory requests use 51% of the node.
+
+Live startup found that this GKE runtime rejects a pod-level primary group
+without an explicit user override when creating its sandbox. Applying the
+primary group at container level fixes this for Loki and Grafana while
+retaining their pinned image UID defaults and volume fsGroup permissions.
+A Kubernetes server dry run cannot detect that runtime constraint.
