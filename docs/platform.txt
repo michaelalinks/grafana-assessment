@@ -116,3 +116,17 @@ https://github.com/kubernetes-sigs/external-dns/blob/master/.github/workflows/re
 https://fluxcd.io/flux/components/source/helmrepositories/
 https://fluxcd.io/flux/components/helm/helmreleases/
 https://grafana.com/docs/grafana/latest/administration/provisioning/
+
+Cleanup validation on the feature branch:
+- Built all ten Kustomize directories and server-dry-ran application manifests.
+- Rendered original/reduced values against exact target charts: resource
+  identities and Workload Identity annotations match; only resources differ.
+- All ten Flux Kustomizations and all four HelmReleases report Ready.
+- ESO 2.12.0 successfully installed from its official OCI repository.
+- Applied the minimal bootstrap with default Flux CPU requests; no Pending
+  pods. Steady-state CPU requests total 1826m of 1930m allocatable.
+- Certificate and both ExternalSecrets report Ready.
+- Public HTTPS health is healthy; all seven provisioned dashboard panels
+  return data. Anonymous dashboard canEdit=false; admin API returns 403.
+- Unrelated namespace connections to Grafana/Prometheus time out, and
+  Grafana external egress times out. Temporary probe pod removed.
