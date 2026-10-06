@@ -29,6 +29,6 @@ spec:
             value: 25m
   sync:
     kind: GitRepository
-    url: https://github.com/michaelalinks/iso-grafana-install.git
+    url: https://github.com/michaelalinks/grafana-assessment.git
     ref: refs/heads/main
     path: flux
