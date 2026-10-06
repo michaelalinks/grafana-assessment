@@ -14,18 +14,16 @@ Run from the repository root:
   python3 -m pytest tests/ -v
 
 The suite checks Flux/Helm readiness, deployment rollout, public HTTPS health,
-all seven dashboard queries, both scrape targets up, anonymous read-only
-permissions, blocked external egress, HTTP redirect, public DNS and every
+all seven metric queries, Loki logs from both demo applications, scrape
+targets up, anonymous read-only
+permissions, HTTP redirect, public DNS and every
 delegated authoritative nameserver against the current central Gateway IP. DNS and health retry for
 up to 300 seconds. Override TEST_TIMEOUT, GRAFANA_HOST or DNS_ZONE via the
 environment when necessary.
 
-The network test temporarily creates one small credential-free pod in the
-default namespace, tests blocked ingress to both application service IPs,
-and a pytest fixture deletes it after the test, including on failure. An
-active deadline limits its lifetime if the runner is interrupted. This requires create/delete/exec pod permissions.
-The test does not read secrets or require Grafana administrator credentials.
-Use only the intended assessment kubeconfig. Tests return nonzero on failure.
+The tests do not read secrets, create probe pods, or require Grafana
+administrator credentials. Use only the intended assessment kubeconfig.
+Tests return nonzero on failure.
 
 These are integration tests implemented with pytest, rather than
 unit tests of custom application logic. No custom application logic exists.
@@ -33,21 +31,21 @@ PR validation does not contact the live cluster. Pod replacement/persistence
 and full infrastructure recreation remain separate procedures; this suite does not
 restart application pods or destroy infrastructure.
 
-Verification (2026-10-06): all eight live integration tests passed against
+Verification (2026-10-06): the original eight live integration tests passed against
 GKE/main. The exact-revision gate also passed against main. All ten
-Kustomize directories rendered successfully. Temporary isolation probe pods were deleted.
+Kustomize directories rendered successfully. Network isolation tests and their
+probe fixture have since been removed along with the application policies;
+the current suite contains seven checks including Loki ingestion.
 
 GitHub live integration workflow
 -------------------------------
 Live integration tests runs on pushes to main and can be dispatched manually
 on main. It waits until every Flux Kustomization is Ready at the triggering
 commit (EXPECTED_REVISION), then runs the actual suite. The newest main run
-cancels an older one; job timeouts and probe deadlines bound interrupted
-runs. PR validation continues to run without cloud credentials.
+cancels an older one; job timeouts bound interrupted runs. PR validation continues to run without cloud credentials.
 
 Authentication uses GitHub OIDC, GCP Workload Identity Federation and the
-existing grafana-assessment service account. No service-account key or
-GitHub secret is required. GKE uses its IAM-protected DNS endpoint. Federation
+existing grafana-assessment service account. No service-account key is required. GKE uses its IAM-protected DNS endpoint. Federation
 is restricted to immutable repository/owner IDs, main, this exact workflow
 and push/manual events. PR workflows cannot authenticate.
 

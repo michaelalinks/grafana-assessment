@@ -1,7 +1,7 @@
 {
   "uid": "assessment-overview",
-  "title": "Grafana & Prometheus Overview",
-  "description": "Provisioned from Git. Metrics come from Prometheus scraping itself and Grafana every 15 seconds. CPU rates need several samples.",
+  "title": "Metrics & Logs Overview",
+  "description": "Provisioned from Git. Prometheus scrapes Grafana and itself every 15 seconds; Alloy forwards their container logs to Loki. CPU rates need several samples.",
   "schemaVersion": 39,
   "version": 1,
   "editable": false,
@@ -240,6 +240,28 @@
           "unit": "short"
         }
       }
+    },
+    {
+      "id": 8,
+      "title": "Grafana & Prometheus logs",
+      "type": "logs",
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 24,
+        "h": 12
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{app=~\"grafana|prometheus\"}",
+          "queryType": "range"
+        }
+      ]
     }
   ]
 }

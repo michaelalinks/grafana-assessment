@@ -56,8 +56,6 @@ spec:
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: 472
-        runAsGroup: 472
         fsGroup: 472
         fsGroupChangePolicy: OnRootMismatch
       containers:
@@ -79,6 +77,7 @@ spec:
             limits:
               memory: 512Mi
           securityContext:
+            runAsGroup: 472
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:
@@ -101,18 +100,14 @@ spec:
             - name: config
               mountPath: /etc/grafana/grafana.ini
               subPath: grafana.ini
-              readOnly: true
             - name: config
               mountPath: /etc/grafana/provisioning/datasources/datasources.yaml
               subPath: datasources.yaml
-              readOnly: true
             - name: config
               mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
               subPath: dashboards.yaml
-              readOnly: true
             - name: dashboard
               mountPath: /var/lib/grafana/dashboards
-              readOnly: true
             - name: data
               mountPath: /var/lib/grafana
             - name: tmp

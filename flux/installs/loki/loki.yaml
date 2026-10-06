@@ -1,98 +1,89 @@
 apiVersion: v1
-kind: Namespace
-metadata:
-  name: monitoring
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: prometheus-data
+  name: loki-data
 spec:
   accessModes: [ReadWriteOnce]
   storageClassName: standard-rwo
   resources:
     requests:
-      storage: 10Gi
+      storage: 5Gi
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: prometheus
+  name: loki
 spec:
   selector:
-    app: prometheus
+    app: loki
   ports:
     - name: http
-      port: 9090
+      port: 3100
       targetPort: http
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: prometheus
+  name: loki
 spec:
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: prometheus
+      app: loki
   template:
     metadata:
       labels:
-        app: prometheus
+        app: loki
     spec:
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: 65534
-        runAsGroup: 65534
-        fsGroup: 65534
+        fsGroup: 10001
         fsGroupChangePolicy: OnRootMismatch
       containers:
-        - name: prometheus
-          image: prom/prometheus:v3.15.0
+        - name: loki
+          image: grafana/loki:3.7.8
           args:
-            - --config.file=/etc/prometheus/config.yaml
-            - --storage.tsdb.path=/prometheus
-            - --storage.tsdb.retention.time=7d
-            - --storage.tsdb.retention.size=8GB
+            - -config.file=/etc/loki/config.yaml
           ports:
             - name: http
-              containerPort: 9090
+              containerPort: 3100
           resources:
             requests:
               cpu: 50m
               memory: 256Mi
             limits:
-              memory: 1Gi
+              memory: 512Mi
           securityContext:
+            runAsGroup: 10001
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
           readinessProbe:
             httpGet:
-              path: /-/ready
+              path: /ready
               port: http
           livenessProbe:
             httpGet:
-              path: /-/healthy
+              path: /ready
               port: http
           startupProbe:
             httpGet:
-              path: /-/ready
+              path: /ready
               port: http
             failureThreshold: 60
             periodSeconds: 5
           volumeMounts:
             - name: config
-              mountPath: /etc/prometheus
+              mountPath: /etc/loki
             - name: data
-              mountPath: /prometheus
+              mountPath: /loki
       volumes:
         - name: config
           configMap:
-            name: prometheus-config
+            name: loki-config
         - name: data
           persistentVolumeClaim:
-            claimName: prometheus-data
+            claimName: loki-data

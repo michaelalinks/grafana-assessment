@@ -9,7 +9,6 @@ import pytest
 import urllib.error
 import urllib.parse
 import urllib.request
-import uuid
 
 HOST = os.environ.get('GRAFANA_HOST', 'grafana.healthtech.michaelalinks.com')
 ZONE = os.environ.get('DNS_ZONE', 'healthtech.michaelalinks.com')
@@ -70,7 +69,8 @@ def test_reconciliation():
             command('kubectl', '-n', item['metadata']['namespace'], 'wait',
                     '--for=condition=Ready', kind + '/' + item['metadata']['name'],
                     f'--timeout={TIMEOUT}s')
-    for namespace, name in [('grafana', 'grafana'), ('monitoring', 'prometheus')]:
+    for namespace, name in [('grafana', 'grafana'), ('monitoring', 'prometheus'), ('monitoring', 'loki'),
+                            ('monitoring', 'alloy')]:
         command('kubectl', '-n', namespace, 'rollout', 'status', 'deployment/' + name,
                 f'--timeout={TIMEOUT}s')
 
@@ -114,7 +114,7 @@ def test_dashboard_and_datasource():
     assert dashboard['meta']['provisioned']
     assert not dashboard['meta']['canEdit']
     panels = dashboard['dashboard']['panels']
-    assert len(panels) == 7
+    assert len(panels) == 8
     def query(expression):
         result = request('/api/datasources/proxy/uid/prometheus/api/v1/query?' +
                          urllib.parse.urlencode({'query': expression}))
@@ -127,6 +127,8 @@ def test_dashboard_and_datasource():
         assert matching, f'Missing scrape target {job}'
         assert all(float(t['value'][1]) == 1 for t in matching), job
     for panel in panels:
+        if panel['datasource']['uid'] != 'prometheus':
+            continue
         expressions = [t['expr'] for t in panel.get('targets', []) if 'expr' in t]
         assert expressions, panel['title']
         for expression in expressions:
@@ -157,44 +159,12 @@ def test_http_redirect():
         caught.value.close()
 
 
-
-@pytest.fixture
-def probe_pod():
-    # Create a temporary probe pod and delete it after the test, even if it fails.
-    # Its active deadline also stops it if the test runner is interrupted.
-    name = 'assessment-test-' + uuid.uuid4().hex[:10]
-    image = resource('deployment', 'grafana', 'grafana')['spec']['template']['spec']['containers'][0]['image']
-    pod = {'apiVersion': 'v1', 'kind': 'Pod', 'metadata': {'name': name, 'namespace': 'default'},
-           'spec': {'automountServiceAccountToken': False, 'restartPolicy': 'Never',
-                    'activeDeadlineSeconds': TIMEOUT + 120,
-                    'containers': [{'name': 'probe', 'image': image, 'command': ['sleep', str(TIMEOUT + 120)],
-                                    'resources': {'requests': {'cpu': '1m', 'memory': '32Mi'},
-                                                  'limits': {'memory': '64Mi'}}}]}}
-    try:
-        subprocess.run(['kubectl', 'create', '-f', '-'], input=json.dumps(pod),
-                       text=True, check=True, timeout=30)
-        command('kubectl', '-n', 'default', 'wait', '--for=condition=Ready', 'pod/' + name,
-                f'--timeout={TIMEOUT}s')
-        yield name
-    finally:
-        subprocess.run(['kubectl', '-n', 'default', 'delete', 'pod', name,
-                        '--ignore-not-found', '--wait=false'], check=True, timeout=30)
-
-
-def test_network_isolation(probe_pod):
-    # IPs avoid mistaking a DNS failure for network isolation.
-    for namespace, service, port in [('grafana', 'grafana', 3000),
-                                     ('monitoring', 'prometheus', 9090)]:
-        ip = resource('service', service, namespace)['spec']['clusterIP']
-        result = subprocess.run(['kubectl', '-n', 'default', 'exec', probe_pod, '--',
-                                 'curl', '--silent', '--show-error', '--max-time', '3',
-                                 f'http://{ip}:{port}/'], capture_output=True, text=True, timeout=15)
-        assert result.returncode == 28, result.stderr
-
-
-
-def test_external_egress_blocked():
-    result = subprocess.run(['kubectl', '-n', 'grafana', 'exec', 'deployment/grafana', '--',
-                             'curl', '--silent', '--show-error', '--max-time', '3',
-                             'http://1.1.1.1/'], capture_output=True, text=True, timeout=15)
-    assert result.returncode == 28, result.stderr
+def test_loki_logs():
+    def check():
+        for app in ('grafana', 'prometheus'):
+            query = urllib.parse.urlencode({'query': '{app="' + app + '"}', 'limit': 1})
+            result = request('/api/datasources/proxy/uid/loki/loki/api/v1/query_range?' + query)
+            assert result['status'] == 'success'
+            streams = result['data']['result']
+            assert streams and any(stream['values'] for stream in streams), app
+    eventually(check)
