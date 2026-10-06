@@ -31,7 +31,6 @@ kind: Deployment
 metadata:
   name: prometheus
 spec:
-  replicas: 1
   strategy:
     type: Recreate
   selector:

@@ -19,8 +19,6 @@ spec:
     name: letsencrypt-gcp
   privateKey:
     algorithm: ECDSA
-    size: 256
-    rotationPolicy: Always
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: ListenerSet
@@ -31,20 +29,14 @@ spec:
   parentRef:
     name: public
     namespace: envoy-gateway-system
-    kind: Gateway
-    group: gateway.networking.k8s.io
   listeners:
     - name: https
       hostname: grafana.healthtech.michaelalinks.com
       protocol: HTTPS
       port: 443
       tls:
-        mode: Terminate
         certificateRefs:
           - name: grafana-tls
-      allowedRoutes:
-        namespaces:
-          from: Same
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -76,13 +68,8 @@ spec:
   parentRefs:
     - name: grafana
       kind: ListenerSet
-      group: gateway.networking.k8s.io
       sectionName: https
   rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
+    - backendRefs:
         - name: grafana
           port: 3000

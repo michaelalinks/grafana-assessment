@@ -46,7 +46,8 @@ External Secrets
 ----------------
 ClusterSecretStore gcp-secret-manager authenticates through the controller's
 annotated Kubernetes service account and GKE metadata server. It refers to
-ornate-artifact-414911. No ExternalSecret fetching values is created yet.
+ornate-artifact-414911. ExternalSecrets fetch the Grafana admin password and
+ACME email; values remain outside Git.
 Add required secret versions through the Secret Manager console when asked;
 never place their values in Git, Terraform or the submission ZIP.
 The three Kubernetes controller accounts map to the same GCP service account
@@ -71,3 +72,47 @@ Terraform destroy deletes the Secret Manager secret and any console-created
 versions: preserve that secret separately if you need values across full
 infrastructure deletion. The password must otherwise be re-added in the
 console after recreation; no secret values are automated in this repo.
+
+Defaults and stable version review (2026-10-06)
+----------------------------------------------
+Exact latest stable pins checked against official release APIs:
+Envoy Gateway 1.9.2; cert-manager 1.21.2; External Secrets chart/app 2.12.0;
+ExternalDNS chart 1.23.0/app 0.23.0; Grafana 13.2.3; Prometheus 3.15.0;
+Flux 2.9.6; Flux Operator/bootstrap charts 0.61.0. No prerelease pins.
+
+Downloaded these exact official charts and compared values/templates.
+Envoy, cert-manager and ESO use OCI HelmRepository sources. ExternalDNS
+retains the official HTTP chart repository: its upstream release workflow
+publishes there, and the guessed GHCR chart endpoint is not available.
+OCI HelmRepository intervals are omitted because Flux ignores them.
+
+Chart defaults supply controller resources and generated service-account
+names. Workload Identity annotations remain explicit. cert-manager's CRD
+flag remains because its default is disabled; Envoy/ESO CRD flags are omitted
+because their defaults enable them. Envoy keeps upgrade.crds=CreateReplace
+for its bundled crds directory; ESO/cert-manager CRDs are normal chart
+resources. Redundant release names, source namespaces and custom timeouts
+are omitted. Optional Helm remediation overrides are also removed.
+
+GatewayClass.spec.controllerName remains: it is required by Gateway API.
+The chart's default config.envoyGateway.gateway.controllerName configures
+the controller, and does not create or replace that required GatewayClass.
+Identity, listener-set RBAC, DNS scoping/ownership, route attachment,
+configuration provisioning, storage, probes and isolation stay explicit.
+
+The earlier Flux CPU patch is removed after the controller overrides are
+removed; default Flux requests now fit the existing node. Grafana/Prometheus
+retain their own bounded resources because these are handwritten workloads,
+not chart-default overrides. Flux uses its default four components and
+cluster settings; registry remains because the FluxInstance API requires it.
+Fast dependency retries remain for automatic initial reconciliation.
+
+Official chart/default sources:
+https://github.com/envoyproxy/gateway/blob/v1.9.2/charts/gateway-helm/values.tmpl.yaml
+https://github.com/cert-manager/cert-manager/blob/v1.21.2/deploy/charts/cert-manager/values.yaml
+https://github.com/external-secrets/external-secrets/blob/helm-chart-2.12.0/deploy/charts/external-secrets/values.yaml
+https://github.com/kubernetes-sigs/external-dns/blob/external-dns-helm-chart-1.23.0/charts/external-dns/values.yaml
+https://github.com/kubernetes-sigs/external-dns/blob/master/.github/workflows/release-chart.yaml
+https://fluxcd.io/flux/components/source/helmrepositories/
+https://fluxcd.io/flux/components/helm/helmreleases/
+https://grafana.com/docs/grafana/latest/administration/provisioning/

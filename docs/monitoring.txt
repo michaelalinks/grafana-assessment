@@ -147,3 +147,8 @@ and the Envoy controller request 50m each. CPU requests reserve scheduling
 capacity and are not hard caps. Memory settings are unchanged. The bootstrap
 healthcheck requests 10m in the ignored Terraform. The original single-node
 machine size is retained; no new cloud resources were added.
+
+A subsequent chart-default review removes the supporting controller resource
+overrides and the bootstrap CPU patch. Historical reservation reductions
+above describe the original isolation rollout, not the final chart defaults.
+Grafana and Prometheus still declare their own resource budgets.

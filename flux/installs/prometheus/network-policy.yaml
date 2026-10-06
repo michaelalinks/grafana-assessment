@@ -18,8 +18,7 @@ spec:
             matchLabels:
               app: prometheus
       ports:
-        - protocol: TCP
-          port: 9090
+        - port: 9090
   egress:
     - to:
         - namespaceSelector:
@@ -29,15 +28,13 @@ spec:
             matchLabels:
               app: grafana
       ports:
-        - protocol: TCP
-          port: 3000
+        - port: 3000
     - to:
         - podSelector:
             matchLabels:
               app: prometheus
       ports:
-        - protocol: TCP
-          port: 9090
+        - port: 9090
     - to:
         - namespaceSelector:
             matchLabels:
@@ -53,5 +50,4 @@ spec:
       ports:
         - protocol: UDP
           port: 53
-        - protocol: TCP
-          port: 53
+        - port: 53
