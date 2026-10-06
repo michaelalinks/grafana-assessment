@@ -17,7 +17,7 @@ spec:
       from: Selector
       selector:
         matchLabels:
-          iso.michaelalinks.com/gateway: public
+          healthtech.michaelalinks.com/gateway: public
   listeners:
     - name: http
       protocol: HTTP
@@ -27,4 +27,4 @@ spec:
           from: Selector
           selector:
             matchLabels:
-              iso.michaelalinks.com/gateway: public
+              healthtech.michaelalinks.com/gateway: public
