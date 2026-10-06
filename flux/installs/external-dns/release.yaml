@@ -30,7 +30,7 @@ spec:
     sources:
       - gateway-httproute
     domainFilters:
-      - iso.michaelalinks.com
+      - healthtech.michaelalinks.com
     policy: sync
     registry: txt
     txtOwnerId: iso-grafana-assessment

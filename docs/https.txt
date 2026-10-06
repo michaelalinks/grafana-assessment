@@ -3,7 +3,7 @@ Shared Gateway and application HTTPS
 One Envoy Gateway and one cloud load balancer serve all applications.
 Gateway public in envoy-gateway-system owns the shared HTTP listener and
 accepts ListenerSets from namespaces labelled:
-  iso.michaelalinks.com/gateway: public
+  healthtech.michaelalinks.com/gateway: public
 The central Gateway contains no application hostnames or TLS certificates.
 
 Each application's ListenerSet attaches to Gateway public and declares its
@@ -41,8 +41,8 @@ Verification
 kubectl -n flux-system get kustomizations
 kubectl -n grafana get certificates,listenersets,httproutes
 kubectl get gateways -A
-curl -I http://grafana.iso.michaelalinks.com
-curl -I https://grafana.iso.michaelalinks.com
+curl -I http://grafana.healthtech.michaelalinks.com
+curl -I https://grafana.healthtech.michaelalinks.com
 Expect one Gateway, a Ready certificate, a Programmed ListenerSet, HTTP 301
 and trusted HTTPS. HTTPS returns 404 until Grafana's backend is installed.
 After merging, the ignored Terraform apply restores Flux sync to main.

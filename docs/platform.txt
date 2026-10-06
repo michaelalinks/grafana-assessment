@@ -10,7 +10,7 @@ Envoy is centralised: GatewayClass envoy and Gateway public live in
 namespace envoy-gateway-system. The central Gateway has no app-specific
 hostnames or certificates. Applications own their ListenerSet, Certificate
 and HTTPRoutes alongside their installs. Label the application namespace
-iso.michaelalinks.com/gateway: public to permit attachment.
+healthtech.michaelalinks.com/gateway: public to permit attachment.
 HTTPS routes reference their local ListenerSet, whose parentRef points to
 the central Gateway. HTTP redirect routes reference the central Gateway's
 HTTP listener. See docs/https.txt for the full model.
@@ -19,7 +19,7 @@ ExternalDNS
 -----------
 Uses Google Workload Identity, no credentials Secret or JSON key.
 Sources: gateway-httproute only. Gateway namespace: envoy-gateway-system.
-Domain filter: iso.michaelalinks.com. Zone filter: grafana-assessment.
+Domain filter: healthtech.michaelalinks.com. Zone filter: grafana-assessment.
 Ownership: TXT registry, owner iso-grafana-assessment, prefix external-dns-.
 Policy sync creates/updates records and removes owned records when routes
 are removed. It does not own Terraform's zone, NS/SOA or ACME challenge records.
@@ -33,15 +33,12 @@ before the Grafana backend is installed.
 GoDaddy: one-time delegation
 ---------------------------
 Open michaelalinks.com -> DNS -> DNS Records -> Add New Record.
-Add four records, each Type NS, Name iso, TTL default (or 1 hour):
-  Value ns-cloud-c1.googledomains.com
-  Value ns-cloud-c2.googledomains.com
-  Value ns-cloud-c3.googledomains.com
-  Value ns-cloud-c4.googledomains.com
-These are the deployed Cloud DNS zone's nameservers. If recreating the zone,
-check terraform output dns_nameservers in case the assignment changes.
+Run terraform -chdir=terraform-local output dns_nameservers after creating
+or replacing the Cloud DNS zone. Add one NS record per output nameserver,
+each with Name healthtech and TTL default (or 1 hour). Use the exact output
+values: a replacement zone can receive different nameservers.
 Keep the parent domain's nameservers and unrelated records unchanged.
-Remove conflicting records at exactly iso if GoDaddy prevents delegation.
+Remove conflicting records at exactly healthtech if GoDaddy prevents delegation.
 DNS propagation can take time. This parent-provider step is not automated
 because GoDaddy API access has not been configured.
 
