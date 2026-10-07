@@ -35,9 +35,12 @@ def deploy():
                   'stringData': {'admin-password': secrets.token_urlsafe(32)}}
         print(run('kubectl', 'create', '-f', '-', input=json.dumps(secret)), end='')
     print(run('kubectl', 'apply', '--server-side', '-k', str(ROOT)), end='')
+    print('Waiting for application pods. Initial image downloads can take several minutes.', flush=True)
+    subprocess.run(['kubectl', '-n', 'monitoring', 'get', 'pods'], check=True, timeout=30)
     for app in ('grafana', 'prometheus', 'loki', 'alloy'):
-        print(run('kubectl', '-n', 'monitoring', 'rollout', 'status',
-                  'deployment/' + app, '--timeout=600s'), end='')
+        print(f'Waiting for {app} to become ready...', flush=True)
+        subprocess.run(['kubectl', '-n', 'monitoring', 'rollout', 'status',
+                        'deployment/' + app, '--timeout=600s'], check=True, timeout=700)
     print('Ready. Run make forward, then open http://localhost:3000. Run make test for integration checks.')
 
 
@@ -57,5 +60,5 @@ if __name__ == '__main__':
         {'deploy': deploy, 'clean': clean}[arguments.action]()
     except (RuntimeError, subprocess.SubprocessError) as error:
         if isinstance(error, subprocess.CalledProcessError):
-            parser.exit(1, error.stderr)
+            parser.exit(1, error.stderr or str(error) + '\n')
         parser.exit(1, str(error) + '\n')
