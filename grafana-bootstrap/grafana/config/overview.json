@@ -1,7 +1,7 @@
 {
   "uid": "assessment-overview",
   "title": "Metrics & Logs Overview",
-  "description": "Provisioned from Git. Prometheus scrapes Grafana and itself every 15 seconds; Alloy forwards their container logs to Loki. CPU rates need several samples.",
+  "description": "Provisioned from local configuration. Prometheus scrapes Grafana and itself every 15 seconds; Alloy forwards their container logs to Loki. CPU rates need several samples.",
   "schemaVersion": 39,
   "version": 1,
   "editable": false,

@@ -39,7 +39,7 @@ make test
 
 This creates a local Python environment with pinned pytest and runs five live integration tests. A fixture opens a temporary loopback-only port-forward on an available port and closes it even on failure. The suite checks health, eight provisioned dashboard panels, seven metric queries, both scrape targets, real logs from both applications, denied anonymous administrator access and internal Service types. No public DNS/TLS or cloud authentication is needed beyond the kubeconfig used to access the cluster.
 
-`make render` prints the generated Kubernetes manifests. Expected live status: four Deployments Available and all five tests passing. Manifest rendering and test discovery have been validated; fresh-cluster live testing is pending.
+`make render` prints the generated Kubernetes manifests. Expected live status: four Deployments Available and all five tests passing. Validated on a fresh kind cluster: all five integration tests passed. Grafana uses a 1 GiB memory limit after the initial 512 MiB limit caused an out-of-memory restart during dashboard loading.
 
 ## Remove
 
