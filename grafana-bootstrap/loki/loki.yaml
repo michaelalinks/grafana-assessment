@@ -15,7 +15,7 @@ kind: Deployment
 metadata:
   name: loki
   labels:
-    app.kubernetes.io/part-of: grafana-assessment-portable
+    app.kubernetes.io/part-of: grafana-assessment
 spec:
   strategy:
     type: Recreate

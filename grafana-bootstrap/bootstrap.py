@@ -7,7 +7,7 @@ import shutil
 import subprocess
 
 ROOT = pathlib.Path(__file__).resolve().parent
-OWNER = 'grafana-assessment-portable'
+OWNER = 'grafana-assessment'
 
 
 def run(*args, input=None):
