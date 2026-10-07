@@ -1,6 +1,6 @@
 # Portable monitoring demo
 
-This directory deploys Grafana, Prometheus, Loki and Alloy to an existing Kubernetes cluster using local Kustomize manifests. All application manifests are handwritten. Extract the ZIP and deploy its files directly; no source repository or controller bootstrap is required.
+This directory deploys Grafana, Prometheus, Loki and Alloy using handwritten Kubernetes manifests. The dashboard shows application health, uptime, CPU and memory use, plus metric collection statistics. Prometheus collects these metrics from Grafana and itself every 15 seconds. Alloy collects their container logs and sends them to Loki, whose log panel helps investigate errors and explain behaviour alongside the metrics. The data comes from these demo applications, rather than the whole cluster. Extract the ZIP and deploy its files directly; no source repository or controller bootstrap is required.
 
 Prerequisites: a working Kubernetes cluster, an authenticated admin `kubectl` context, Python 3 and Make. Nodes need access to the public container registries. Running tests also requires access to PyPI to install pytest.
 
