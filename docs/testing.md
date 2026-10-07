@@ -1,5 +1,5 @@
-Automated testing
-=================
+# Automated testing
+
 CI renders every Kustomize directory on pull requests and main pushes. It
 requires no cloud credentials and checks pytest test discovery without
 executing live tests. Live CRD/schema acceptance was separately
@@ -10,8 +10,10 @@ Live integration suite prerequisites: Python 3, pip, kubectl and dig;
 authenticated kubeconfig for the assessment cluster; internet access.
 Run from the repository root:
 
-  python3 -m pip install -r tests/requirements.txt
-  python3 -m pytest tests/ -v
+```sh
+python3 -m pip install -r tests/requirements.txt
+python3 -m pytest tests/ -v
+```
 
 The suite checks Flux/Helm readiness, deployment rollout, public HTTPS health,
 all seven metric queries, Loki logs from both demo applications, scrape
@@ -37,8 +39,8 @@ Kustomize directories rendered successfully. Network isolation tests and their
 probe fixture have since been removed along with the application policies;
 the current suite contains seven checks including Loki ingestion.
 
-GitHub live integration workflow
--------------------------------
+## GitHub live integration workflow
+
 Live integration tests runs on pushes to main and can be dispatched manually
 on main. It waits until every Flux Kustomization is Ready at the triggering
 commit (EXPECTED_REVISION), then runs the actual suite. The newest main run
@@ -73,7 +75,7 @@ before merge. Full GitHub federation and IAM authorization still require
 verification after Terraform apply and merge. For a future project/cluster
 recreation, update the GitHub secrets from the new Terraform outputs.
 Official action guidance:
-https://github.com/google-github-actions/auth
-https://github.com/google-github-actions/auth/blob/main/docs/SECURITY_CONSIDERATIONS.md
-https://github.com/google-github-actions/get-gke-credentials
+- <https://github.com/google-github-actions/auth>
+- <https://github.com/google-github-actions/auth/blob/main/docs/SECURITY_CONSIDERATIONS.md>
+- <https://github.com/google-github-actions/get-gke-credentials>
 

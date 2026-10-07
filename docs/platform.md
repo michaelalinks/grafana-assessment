@@ -1,5 +1,5 @@
-Platform controllers and DNS
-============================
+# Platform controllers and DNS
+
 All platform configuration is under flux/. Flux installs pinned Helm charts
 for Envoy Gateway, External Secrets and ExternalDNS. The root Kustomization
 creates separate Flux Kustomizations for each controller and configuration.
@@ -13,10 +13,10 @@ and HTTPRoutes alongside their installs. Label the application namespace
 healthtech.michaelalinks.com/gateway: public to permit attachment.
 HTTPS routes reference their local ListenerSet, whose parentRef points to
 the central Gateway. HTTP redirect routes reference the central Gateway's
-HTTP listener. See docs/https.txt for the full model.
+HTTP listener. See [the HTTPS guide](https.md) for the full model.
 
-ExternalDNS
------------
+## ExternalDNS
+
 Uses Google Workload Identity, no credentials Secret or JSON key.
 Sources: gateway-httproute only. Gateway namespace: envoy-gateway-system.
 Domain filter: healthtech.michaelalinks.com. Zone filter: grafana-assessment.
@@ -30,8 +30,8 @@ HTTPRoutes in Git and Flux/ExternalDNS manage the records automatically.
 Grafana's application-owned redirect route supplies its hostname even
 before the Grafana backend is installed.
 
-GoDaddy: one-time delegation
----------------------------
+## GoDaddy: one-time delegation
+
 Open michaelalinks.com -> DNS -> DNS Records -> Add New Record.
 Run terraform -chdir=terraform-local output dns_nameservers after creating
 or replacing the Cloud DNS zone. Add one NS record per output nameserver,
@@ -42,8 +42,8 @@ Remove conflicting records at exactly healthtech if GoDaddy prevents delegation.
 DNS propagation can take time. This parent-provider step is not automated
 because GoDaddy API access has not been configured.
 
-External Secrets
-----------------
+## External Secrets
+
 ClusterSecretStore gcp-secret-manager authenticates through the controller's
 annotated Kubernetes service account and GKE metadata server. It refers to
 ${GCP_PROJECT_ID}. ExternalSecrets fetch the Grafana admin password and
@@ -53,8 +53,8 @@ never place their values in Git, Terraform or the submission ZIP.
 The three Kubernetes controller accounts map to the same GCP service account
 as requested. IAM permissions are provided by the ignored Terraform.
 
-Rebuild and ownership
----------------------
+## Rebuild and ownership
+
 Ignored terraform-local/flux.tf installs Flux Operator and the FluxInstance
 Helm charts. Terraform owns bootstrap; Flux owns platform releases and config.
 The bootstrap reads flux/flux-system/flux-instance.yaml, but the root Kustomize
@@ -73,8 +73,8 @@ versions: preserve that secret separately if you need values across full
 infrastructure deletion. The password must otherwise be re-added in the
 console after recreation; no secret values are automated in this repo.
 
-Defaults and stable version review (2026-10-06)
-----------------------------------------------
+## Defaults and stable version review (2026-10-06)
+
 Exact latest stable pins checked against official release APIs:
 Envoy Gateway 1.9.2; cert-manager 1.21.2; External Secrets chart/app 2.12.0;
 ExternalDNS chart 1.23.0/app 0.23.0; Grafana 13.2.3; Prometheus 3.15.0;
@@ -108,14 +108,14 @@ cluster settings; registry remains because the FluxInstance API requires it.
 Fast dependency retries remain for automatic initial reconciliation.
 
 Official chart/default sources:
-https://github.com/envoyproxy/gateway/blob/v1.9.2/charts/gateway-helm/values.tmpl.yaml
-https://github.com/cert-manager/cert-manager/blob/v1.21.2/deploy/charts/cert-manager/values.yaml
-https://github.com/external-secrets/external-secrets/blob/helm-chart-2.12.0/deploy/charts/external-secrets/values.yaml
-https://github.com/kubernetes-sigs/external-dns/blob/external-dns-helm-chart-1.23.0/charts/external-dns/values.yaml
-https://github.com/kubernetes-sigs/external-dns/blob/master/.github/workflows/release-chart.yaml
-https://fluxcd.io/flux/components/source/helmrepositories/
-https://fluxcd.io/flux/components/helm/helmreleases/
-https://grafana.com/docs/grafana/latest/administration/provisioning/
+- <https://github.com/envoyproxy/gateway/blob/v1.9.2/charts/gateway-helm/values.tmpl.yaml>
+- <https://github.com/cert-manager/cert-manager/blob/v1.21.2/deploy/charts/cert-manager/values.yaml>
+- <https://github.com/external-secrets/external-secrets/blob/helm-chart-2.12.0/deploy/charts/external-secrets/values.yaml>
+- <https://github.com/kubernetes-sigs/external-dns/blob/external-dns-helm-chart-1.23.0/charts/external-dns/values.yaml>
+- <https://github.com/kubernetes-sigs/external-dns/blob/master/.github/workflows/release-chart.yaml>
+- <https://fluxcd.io/flux/components/source/helmrepositories/>
+- <https://fluxcd.io/flux/components/helm/helmreleases/>
+- <https://grafana.com/docs/grafana/latest/administration/provisioning/>
 
 Historical cleanup validation before removal of application NetworkPolicies:
 - Built all ten Kustomize directories and server-dry-ran application manifests.

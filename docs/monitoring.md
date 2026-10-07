@@ -1,10 +1,10 @@
-Grafana and Prometheus
-======================
+# Grafana and Prometheus
+
 Handwritten Kubernetes manifests; no Grafana or Prometheus Helm charts.
 Grafana image: grafana/grafana:13.2.3. Prometheus: prom/prometheus:v3.15.0.
 
-Installation
-------------
+## Installation
+
 1. Apply the ignored terraform-local infrastructure as documented there.
 2. In GCP Secret Manager, add an enabled version of the secret
    assessment-grafana-admin-password in ${GCP_PROJECT_ID}. Store only
@@ -17,8 +17,8 @@ Installation
    as admin with the Secret Manager password. Anonymous viewers can read
    dashboards and query the demo datasource, but cannot edit configuration.
 
-Configuration
--------------
+## Configuration
+
 External Secrets uses the existing Workload Identity-enabled controller to
 fetch the password. Grafana itself needs no GCP or Kubernetes API access.
 The password initializes the admin account on a fresh database. Updating
@@ -41,8 +41,8 @@ Grafana uses the existing local HTTPS ListenerSet attached to the central
 Envoy Gateway. ExternalDNS publishes the HTTPRoute hostname. Prometheus
 has only a ClusterIP Service and no public HTTPRoute.
 
-Storage and tradeoffs
----------------------
+## Storage and tradeoffs
+
 Grafana SQLite data uses a 2Gi standard-rwo PVC. Prometheus uses 10Gi and
 retains up to seven days or 8GB of metrics, whichever bound is reached first.
 One replica and Recreate deployment strategy avoid simultaneous writers
@@ -52,12 +52,14 @@ PVCs survive pod replacement, but Flux pruning or infrastructure teardown
 can delete PVCs/disks. There are no backups; rebuild restores provisioned
 configuration but not historical metrics, users or UI changes.
 
-Verification
-------------
+## Verification
+
+```sh
 kubectl -n flux-system get gitrepositories,kustomizations
 kubectl -n monitoring get deployments,pods,pvc,services
 kubectl -n grafana get deployments,pods,pvc,externalsecrets,certificates,httproutes
 curl --fail https://grafana.healthtech.michaelalinks.com/api/health
+```
 
 Expected: Flux Ready on main, workloads Available, PVCs Bound, ExternalSecret
 and Certificate Ready, HTTPRoute Accepted and ResolvedRefs True. The health
@@ -67,8 +69,8 @@ memory and scrape panels should contain samples. Check HTTP redirects to
 HTTPS and that the browser accepts the certificate. Do not export secrets
 when recording results. See the recorded checks below.
 
-Reflection
-----------
+## Reflection
+
 The supporting controllers automate DNS, TLS and secret delivery, while the
 core monitoring manifests remain small and inspectable. Explicit app-owned
 listeners keep certificates and routes alongside Grafana. The main tradeoff
@@ -79,15 +81,15 @@ plugin preinstallation/updates keeps bundled plugins tied to the image
 version and fixed the datasource. Full teardown/rebuild and Prometheus
 history persistence tests remain to be run.
 
-References
-----------
-https://grafana.com/docs/grafana/latest/administration/provisioning/
-https://grafana.com/docs/grafana/latest/setup-grafana/installation/kubernetes/
-https://prometheus.io/docs/prometheus/latest/installation/
-https://prometheus.io/docs/prometheus/latest/configuration/configuration/
+## References
 
-Recorded live verification (2026-10-04)
---------------------------------------
+- <https://grafana.com/docs/grafana/latest/administration/provisioning/>
+- <https://grafana.com/docs/grafana/latest/setup-grafana/installation/kubernetes/>
+- <https://prometheus.io/docs/prometheus/latest/installation/>
+- <https://prometheus.io/docs/prometheus/latest/configuration/configuration/>
+
+## Recorded live verification (2026-10-04)
+
 Flux temporarily watched feat/grafana-prometheus for pre-merge validation;
 Terraform remains configured for main. All eleven Kustomizations were Ready.
 Both deployments became Available, both PVCs Bound, and the ExternalSecret
@@ -101,8 +103,8 @@ configuration change replaced the pod. The existing admin account remained
 usable. No browser visual inspection or full teardown/rebuild was performed.
 Temporary localhost port forwarding used for testing was closed afterward.
 
-Internal connectivity
----------------------
+## Internal connectivity
+
 Grafana and Prometheus have no application NetworkPolicies. Cluster workloads
 can use their internal ClusterIP endpoints subject to any policies applied
 elsewhere. Only Grafana is routed through the public Envoy Gateway; Prometheus
@@ -113,4 +115,4 @@ appropriate for public viewing.
 
 Loki is now provisioned as a second data source. The eighth dashboard panel
 shows Grafana and Prometheus container logs collected by Alloy. See
-logging.txt for collection scope, retention, chart configuration and tests.
+[the logging guide](logging.md) for collection scope, retention, chart configuration and tests.
