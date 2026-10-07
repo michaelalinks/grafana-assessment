@@ -1,5 +1,5 @@
-Loki logging integration
-========================
+# Loki logging integration
+
 Loki 3.7.8 uses handwritten manifests, one process, TSDB v13 indexes and
 filesystem storage on a 5Gi standard-rwo PVC. The compactor removes logs
 older than 72 hours (asynchronously); retention is not a hard disk-size cap.
@@ -31,8 +31,8 @@ The existing node had 104m scheduling headroom. Memory limits are 512Mi for
 Loki and 256Mi for Alloy. Alloy uses Recreate to avoid surge reservations on
 this small node. No node upgrade or Terraform change is needed.
 
-Verification
-------------
+## Verification
+
 Run python3 -m pytest tests/ -v. The suite now also queries Loki through
 Grafana and waits for nonempty real log streams from each demo application.
 The dashboard API must contain eight panels. Pod/API collection restarts
@@ -40,16 +40,16 @@ may replay recent lines; no exactly-once or lossless delivery guarantee is
 claimed. Full storage teardown/recreation and long-running retention tests
 are not part of this verification.
 
-References
-----------
-https://grafana.com/docs/loki/latest/configure/examples/configuration-examples/
-https://grafana.com/docs/loki/latest/operations/storage/retention/
-https://grafana.com/docs/alloy/latest/collect/logs-in-kubernetes/
-https://grafana.com/docs/alloy/latest/reference/components/loki/loki.source.kubernetes/
-https://github.com/grafana/helm-charts/tree/main/charts/alloy
+## References
 
-Recorded live verification (2026-10-06)
--------------------------------------
+- <https://grafana.com/docs/loki/latest/configure/examples/configuration-examples/>
+- <https://grafana.com/docs/loki/latest/operations/storage/retention/>
+- <https://grafana.com/docs/alloy/latest/collect/logs-in-kubernetes/>
+- <https://grafana.com/docs/alloy/latest/reference/components/loki/loki.source.kubernetes/>
+- <https://github.com/grafana/helm-charts/tree/main/charts/alloy>
+
+## Recorded live verification (2026-10-06)
+
 Flux reconciled the feature revision and all seven pytest checks passed,
 including nonempty Loki streams for app=grafana and app=prometheus through
 Grafana's anonymous datasource proxy. The dashboard has eight provisioned
