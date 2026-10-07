@@ -86,8 +86,13 @@ def test_dashboard_and_metrics(grafana):
 
 def test_collected_logs(grafana):
     def check():
+        # Healthy Prometheus may stay quiet for hours; check retained logs, not fresh ingestion.
+        end = time.time_ns()
         for app in ('grafana', 'prometheus'):
-            query = urllib.parse.urlencode({'query': '{app="' + app + '"}', 'limit': 1})
+            query = urllib.parse.urlencode({
+                'query': '{app="' + app + '"}', 'limit': 1,
+                'start': str(end - 24 * 3600 * 10**9), 'end': str(end),
+            })
             result = grafana('/api/datasources/proxy/uid/loki/loki/api/v1/query_range?' + query)
             assert result['status'] == 'success'
             assert any(stream['values'] for stream in result['data']['result']), app
