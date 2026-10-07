@@ -22,5 +22,4 @@ gha-creds-*.json
 gha-kubeconfig-*
 
 # Portable bootstrap tooling and test environment.
-/flux-standalone/.bin/
-/flux-standalone/.venv/
+/grafana-bootstrap/.venv/

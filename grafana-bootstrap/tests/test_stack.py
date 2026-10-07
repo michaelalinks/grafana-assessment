@@ -31,8 +31,6 @@ def eventually(check, timeout=TIMEOUT):
 @pytest.fixture(scope='session')
 def grafana():
     # Open a loopback-only port-forward for the tests and close it even if a test fails.
-    command('kubectl', '-n', 'flux-system', 'wait', '--for=condition=Ready',
-            'kustomization/assessment-portable', f'--timeout={TIMEOUT}s')
     for app in ('grafana', 'prometheus', 'loki', 'alloy'):
         command('kubectl', '-n', 'monitoring', 'rollout', 'status',
                 'deployment/' + app, f'--timeout={TIMEOUT}s')

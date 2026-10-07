@@ -1,11 +1,9 @@
 PYTHON ?= python3
-GIT_URL ?= https://github.com/michaelalinks/grafana-assessment.git
-REF ?= main
 
 .PHONY: deploy forward test render clean
 
 deploy:
-	$(PYTHON) bootstrap.py --git-url "$(GIT_URL)" --ref "$(REF)"
+	$(PYTHON) bootstrap.py deploy
 
 forward:
 	kubectl -n monitoring port-forward --address=127.0.0.1 service/grafana 3000:3000
@@ -21,5 +19,4 @@ render:
 	kubectl kustomize .
 
 clean:
-	kubectl -n flux-system delete kustomization assessment-portable --wait=true
-	kubectl -n flux-system delete gitrepository assessment-portable --ignore-not-found
+	$(PYTHON) bootstrap.py clean
