@@ -18,9 +18,10 @@ The node should show `Ready`. These commands create a local cluster; they do not
 
 ## Deploy
 
-In the extracted directory containing this README and Makefile:
+Before running the Make commands, change into the extracted `grafana-bootstrap` directory containing this README and Makefile:
 
 ```sh
+cd /path/to/extracted/grafana-bootstrap
 make deploy
 make forward
 ```
@@ -30,6 +31,18 @@ Open **http://localhost:3000** while the forward runs. Anonymous viewing is enab
 `deploy` creates a random admin-password Secret directly in Kubernetes, applies the local manifests with `kubectl apply -k`, and waits for all four Deployments. Rerunning preserves the existing password and data in running pods. It refuses an unrelated monitoring namespace. After editing configuration, rerun `make deploy` to apply it; configuration is not automatically reconciled.
 
 This uses the current kubeconfig, including `KUBECONFIG` if set. Check `kubectl config current-context` before deploying. The Makefile provides convenient commands; `python3 bootstrap.py deploy` performs the same deployment.
+
+## Test
+
+Run this in a terminal from the extracted `grafana-bootstrap` directory containing the Makefile. If `make forward` is running, use another terminal; the tests open their own port-forward.
+
+```sh
+make test
+```
+
+This creates a local Python environment with pinned pytest and runs five live integration tests. A fixture opens a temporary loopback-only port-forward on an available port and closes it even on failure. The suite checks health, eight provisioned dashboard panels, seven metric queries, both scrape targets, real logs from both applications, denied anonymous administrator access and internal Service types. No public DNS/TLS or cloud authentication is needed beyond the kubeconfig used to access the cluster.
+
+`make render` prints the generated Kubernetes manifests. Expected live status: four Deployments Available and all five tests passing. Validated on a fresh kind cluster: all five integration tests passed. Grafana uses a 1 GiB memory limit after the initial 512 MiB limit caused an out-of-memory restart during dashboard loading.
 
 ## Data and secrets
 
@@ -69,16 +82,6 @@ kubectl -n monitoring logs deployment/grafana --previous --tail=50
 Handwritten manifests required explicitly connecting Services, ConfigMaps, Secrets and Grafana provisioning, plus configuring writable volumes, container permissions, probes and Alloy's log-reading RBAC. This made the setup easy to inspect, but left compatibility and upgrades to maintain ourselves. Maintained Helm charts reduce that assembly work, while still requiring suitable resource limits, storage and integration testing.
 
 Ephemeral storage keeps the demo portable but sacrifices history when pods are replaced. For a longer-lived service, I would add configurable PVC storage and backups, measure resource use under representative load, and weigh handwritten maintenance against maintained charts. Metric rate panels need several scrape samples before showing useful values.
-
-## Test
-
-```sh
-make test
-```
-
-This creates a local Python environment with pinned pytest and runs five live integration tests. A fixture opens a temporary loopback-only port-forward on an available port and closes it even on failure. The suite checks health, eight provisioned dashboard panels, seven metric queries, both scrape targets, real logs from both applications, denied anonymous administrator access and internal Service types. No public DNS/TLS or cloud authentication is needed beyond the kubeconfig used to access the cluster.
-
-`make render` prints the generated Kubernetes manifests. Expected live status: four Deployments Available and all five tests passing. Validated on a fresh kind cluster: all five integration tests passed. Grafana uses a 1 GiB memory limit after the initial 512 MiB limit caused an out-of-memory restart during dashboard loading.
 
 ## Remove
 
