@@ -70,6 +70,16 @@ kubectl -n monitoring logs deployment/grafana --previous --tail=50
 
 The previous-log command is useful when a container has restarted. In a longer-lived setup, I would measure memory during representative dashboard use before choosing limits, and check restart counts as well as application health. The initial API health checks alone did not prove that the browser workload would fit the memory limit.
 
+### Handwritten manifests compared with Helm charts
+
+Writing the application manifests by hand made every resource and its purpose visible, but required assembling the connections that a maintained chart would normally express through templates and values. Services must select the correct pod labels and ports; configuration files must become the correct ConfigMap keys and appear at the paths each application expects; the generated password Secret must exist before Grafana starts. Grafana also needs separate provisioning configuration for data sources and dashboards. A Deployment reaching Ready does not prove all those connections work, so the integration tests check actual metric queries and collected logs.
+
+Permissions and storage needed particular care. The containers run without root privileges, so writable data directories need compatible volume ownership, while a read-only root filesystem still requires writable mounts for application data and temporary files. Alloy needs its own ServiceAccount and a namespaced Role to read pod logs. Writing these explicitly helped keep access narrow, but also made those details our responsibility to validate.
+
+The Grafana memory crash showed why handwritten configuration needs runtime validation as well as valid YAML. The initial resource limit allowed startup but failed during dashboard use. A chart would still require resource sizing for this workload; adopting one would not by itself establish a suitable memory limit. Similarly, storage defaults must suit the target cluster rather than be copied from the cloud installation.
+
+The benefit is a small, inspectable submission with no application chart dependency. The cost is ongoing maintenance: image upgrades, configuration compatibility, probes, security settings and provisioning behaviour must be reviewed together. For this assignment, that explicit configuration demonstrates the implementation. For a longer-lived service, I would weigh that maintenance effort against using maintained application charts, keep only necessary overrides, and retain the same integration tests whichever deployment method is chosen.
+
 Ephemeral storage was a deliberate portability tradeoff: reviewers can deploy without a cloud-specific StorageClass, but application history is disposable. Configuration and the dashboard are recreated from the supplied manifests, while collected metrics and logs must accumulate again after pod replacement. CPU rate panels also need several scrape samples before they show useful values.
 
 ## Test
